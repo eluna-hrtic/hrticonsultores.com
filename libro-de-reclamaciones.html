@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libro de Reclamaciones · HRTIC</title>
+<meta name="description" content="Libro de Reclamaciones virtual de HR Talento Integral Consultores E.I.R.L., conforme al Código de Protección y Defensa del Consumidor.">
+<link rel="canonical" href="https://hrticonsultores.com/libro-de-reclamaciones.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_PE">
+<meta property="og:site_name" content="HRTIC · HR Talento Integral Consultores">
+<meta property="og:title" content="Libro de Reclamaciones · HRTIC">
+<meta property="og:description" content="Libro de Reclamaciones virtual de HR Talento Integral Consultores E.I.R.L., conforme al Código de Protección y Defensa del Consumidor.">
+<meta property="og:url" content="https://hrticonsultores.com/libro-de-reclamaciones.html">
+<meta property="og:image" content="https://hrticonsultores.com/icono-512.png">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+<header class="cabecera">
+  <div class="contenedor">
+    <a class="marca" href="index.html" aria-label="HRTIC, inicio">
+      <img src="logo-marca.png" alt="" width="46" height="36">
+      <span><strong>HRTIC</strong><small>HR Talento Integral Consultores</small></span>
+    </a>
+    <button class="menu-boton" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <nav class="menu" id="menu" aria-label="Principal">
+      <a href="empresas.html">Empresas</a>
+      <a href="profesionales.html">Profesionales</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="contacto.html">Contacto</a>
+      <a class="boton boton-primario" href="https://wa.me/51931831691?text=Hola%2C%20vengo%20de%20la%20web%20de%20HRTIC%20y%20quiero%20hacer%20una%20consulta." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19.1L4 20Z"/><path d="M9.2 8.6c.2-.4.5-.5.8-.5h.5c.2 0 .4.1.5.4l.7 1.6c.1.2 0 .5-.1.7l-.5.6c.6 1.1 1.4 1.9 2.5 2.5l.6-.5c.2-.2.5-.2.7-.1l1.6.7c.3.1.4.3.4.5v.5c0 .3-.1.6-.5.8-.6.3-1.6.5-2.9-.1a9.2 9.2 0 0 1-4.3-4.3c-.6-1.3-.4-2.3-.1-2.9Z" fill="currentColor" stroke="none"/></svg>Escríbenos</a>
+    </nav>
+  </div>
+</header>
+<main id="contenido">
+<section class="seccion">
+  <div class="contenedor legal" style="max-width:880px">
+    <span class="kicker">Atención al consumidor</span>
+    <h1>Libro de Reclamaciones</h1>
+    <p>Conforme al Código de Protección y Defensa del Consumidor (Ley N.° 29571) y al Reglamento del Libro de Reclamaciones (D.S. N.° 011-2011-PCM), este sitio cuenta con un Libro de Reclamaciones virtual a tu disposición.</p>
+
+    <div class="hoja-cabecera" style="margin:24px 0">
+      <div>
+        <strong>HR Talento Integral Consultores E.I.R.L.</strong>
+        RUC 20616041704 · Av. República de Panamá 699, Mz. F, Dpto. 204, Urb. Santa Marina Norte, Callao
+      </div>
+      <div>
+        <strong>Hoja de reclamación</strong>
+        N.° <span id="lr-numero">se asigna al enviar</span> · <span id="lr-fecha"></span>
+      </div>
+    </div>
+
+    <form class="formulario" id="form-libro" data-endpoint="https://script.google.com/macros/s/AKfycbxh_zPEoObP4yQ_tA2y0g0WKJckyDj3fK5F34GN7volc0M7Epdvp-7jsp11f9kSqr4Y/exec" novalidate>
+        <input type="text" name="telefono2" tabindex="-1" autocomplete="off" class="oculto" aria-hidden="true">
+      <h2>1. Identificación del consumidor reclamante</h2>
+      <div class="fila">
+        <div class="campo"><label for="l-nombre">Nombres y apellidos</label><input id="l-nombre" name="nombre" autocomplete="name" required maxlength="120"></div>
+        <div class="campo"><label for="l-doc">DNI / CE / Pasaporte</label><input id="l-doc" name="documento" required maxlength="20"></div>
+      </div>
+      <div class="campo"><label for="l-domicilio">Domicilio</label><input id="l-domicilio" name="domicilio" autocomplete="street-address" required maxlength="200"></div>
+      <div class="fila">
+        <div class="campo"><label for="l-telefono">Teléfono</label><input id="l-telefono" name="telefono" type="tel" autocomplete="tel" required maxlength="30"></div>
+        <div class="campo"><label for="l-correo">Correo</label><input id="l-correo" name="correo" type="email" autocomplete="email" required maxlength="120"><span class="ayuda">Aquí te llega la copia de tu hoja.</span></div>
+      </div>
+      <div class="campo"><label for="l-apoderado">Padre, madre o apoderado <span class="ayuda">(solo si el reclamante es menor de edad)</span></label><input id="l-apoderado" name="apoderado" maxlength="120"></div>
+
+      <h2>2. Identificación del servicio contratado</h2>
+      <div class="fila">
+        <div class="campo"><label for="l-servicio">Servicio</label><input id="l-servicio" name="servicio" required maxlength="160"></div>
+        <div class="campo"><label for="l-monto">Monto reclamado (S/) <span class="ayuda">(si aplica)</span></label><input id="l-monto" name="monto" inputmode="decimal" maxlength="20"></div>
+      </div>
+
+      <h2>3. Detalle de la reclamación y pedido</h2>
+      <fieldset class="campo">
+        <legend>Tipo</legend>
+        <div class="opciones" style="flex-direction:column">
+          <label class="opcion"><input type="radio" name="tipo" value="reclamo" required> <span><strong>Reclamo:</strong> disconformidad con el servicio contratado.</span></label>
+          <label class="opcion"><input type="radio" name="tipo" value="queja"> <span><strong>Queja:</strong> malestar con la atención recibida, sin relación directa con el servicio.</span></label>
+        </div>
+      </fieldset>
+      <div class="campo"><label for="l-detalle">Detalle</label><textarea id="l-detalle" name="detalle" required maxlength="3000"></textarea></div>
+      <div class="campo"><label for="l-pedido">Pedido</label><textarea id="l-pedido" name="pedido" required maxlength="1500" style="min-height:90px"></textarea></div>
+
+      <h2>4. Observaciones y acciones del proveedor</h2>
+      <p>HRTIC responderá a tu reclamo o queja en un plazo máximo de quince (15) días hábiles improrrogables, al correo que registraste.</p>
+
+      <label class="consentimiento"><input type="checkbox" name="conformidad" value="si" required> <span>Declaro que los datos consignados son verdaderos y autorizo su tratamiento para atender este reclamo, conforme a la <a href="privacidad.html">política de privacidad</a>.</span></label>
+      <div class="aviso oculto" role="status" aria-live="polite"></div>
+      <div><button class="boton boton-primario" type="submit">Registrar hoja de reclamación</button></div>
+    </form>
+  </div>
+</section>
+</main>
+<footer class="pie">
+  <div class="contenedor">
+    <div class="col">
+      <div>
+        <a class="marca" href="index.html" aria-label="HRTIC, inicio">
+          <img src="logo-marca.png" alt="" width="40" height="31">
+          <span><strong>HRTIC</strong><small>HR Talento Integral Consultores</small></span>
+        </a>
+        <p style="margin-top:14px">Gestión de personas y legislación laboral en el Perú.<br>«Talento con propósito, liderazgo con estrategia.»</p>
+      </div>
+      <div>
+        <h2>Servicios</h2>
+        <ul>
+          <li><a href="empresas.html">Para empresas</a></li>
+          <li><a href="profesionales.html">Para profesionales</a></li>
+          <li><a href="nosotros.html">Nosotros</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Contacto</h2>
+        <ul>
+          <li><a href="mailto:eluna@hrticonsultores.com">eluna@hrticonsultores.com</a></li>
+          <li><a href="https://wa.me/51931831691?text=Hola%2C%20vengo%20de%20la%20web%20de%20HRTIC%20y%20quiero%20hacer%20una%20consulta." target="_blank" rel="noopener">WhatsApp 931 831 691</a></li>
+          <li><a href="https://www.linkedin.com/company/hr-talento-integral-consultores-e-i-r-l/" target="_blank" rel="noopener">LinkedIn</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Atención al consumidor</h2>
+        <a class="libro-enlace" href="libro-de-reclamaciones.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/><path d="M9 7h7M9 10.5h5"/></svg>Libro de Reclamaciones</a>
+      </div>
+    </div>
+    <div class="legales">
+      <span>© 2026 HR Talento Integral Consultores E.I.R.L. · RUC 20616041704</span>
+      <span><a href="privacidad.html">Política de privacidad</a></span>
+    </div>
+  </div>
+</footer>
+<a class="wsp-flotante" href="https://wa.me/51931831691?text=Hola%2C%20vengo%20de%20la%20web%20de%20HRTIC%20y%20quiero%20hacer%20una%20consulta." target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19.1L4 20Z"/><path d="M9.2 8.6c.2-.4.5-.5.8-.5h.5c.2 0 .4.1.5.4l.7 1.6c.1.2 0 .5-.1.7l-.5.6c.6 1.1 1.4 1.9 2.5 2.5l.6-.5c.2-.2.5-.2.7-.1l1.6.7c.3.1.4.3.4.5v.5c0 .3-.1.6-.5.8-.6.3-1.6.5-2.9-.1a9.2 9.2 0 0 1-4.3-4.3c-.6-1.3-.4-2.3-.1-2.9Z" fill="currentColor" stroke="none"/></svg></a>
+<script src="main.js" defer></script>
+</body>
+</html>
