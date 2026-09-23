@@ -1,4 +1,4 @@
-/* HRTIC · sitio web v1 · comportamiento mínimo, sin dependencias */
+/* HRTIC · sitio web v1.3 · comportamiento mínimo, sin dependencias */
 (function () {
   "use strict";
 
@@ -12,11 +12,74 @@
     });
   }
 
-  // Video de capacitaciones: sin reproducción automática si la persona pidió reducir el movimiento
-  document.querySelectorAll("video[autoplay]").forEach(function (v) {
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      v.removeAttribute("autoplay"); v.pause(); v.controls = true;
-    }
+  // Video de capacitaciones: se descarga recién cuando entra en pantalla (ahorra ~2 MB a quien no llega hasta ahí)
+  // y no arranca solo si la persona pidió reducir el movimiento.
+  var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function cargarVideo(v) {
+    v.querySelectorAll("source[data-src]").forEach(function (s) { s.src = s.getAttribute("data-src"); s.removeAttribute("data-src"); });
+    v.load();
+    if (quieto) { v.controls = true; } else { var p = v.play(); if (p && p.catch) p.catch(function () { v.controls = true; }); }
+  }
+  document.querySelectorAll("video[data-autoplay]").forEach(function (v) {
+    if (!("IntersectionObserver" in window)) { cargarVideo(v); return; }
+    var io = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e) { if (e.isIntersecting) { io.disconnect(); cargarVideo(v); } });
+    }, { rootMargin: "200px" });
+    io.observe(v);
+  });
+
+  var params = new URLSearchParams(location.search);
+  var pagina = location.pathname.replace(/^.*\//, "").replace(/\.html$/, "");
+  if (!pagina || pagina === "index") pagina = "inicio";
+
+  // Origen de la visita: fuente (campaña utm o sitio de procedencia) y página de entrada de esta sesión.
+  // No usa cookies; vive solo en esta pestaña y viaja con los formularios para saber qué canal trae consultas.
+  var origen = (function () {
+    var o = null;
+    try { o = JSON.parse(sessionStorage.getItem("hrtic_origen") || "null"); } catch (e) { o = null; }
+    if (o && o.fuente) return o;
+    var ref = "";
+    try {
+      var u = document.referrer ? new URL(document.referrer) : null;
+      if (u && u.hostname !== location.hostname) ref = u.hostname.replace(/^www\./, "");
+    } catch (e) { ref = ""; }
+    var conocidos = [[/(^|\.)(linkedin\.com|lnkd\.in)$/, "linkedin"], [/(^|\.)google\./, "google"],
+      [/(^|\.)(facebook\.com|fb\.me)$/, "facebook"], [/(^|\.)instagram\.com$/, "instagram"],
+      [/(^|\.)(whatsapp\.com|wa\.me)$/, "whatsapp"], [/(^|\.)bing\.com$/, "bing"], [/^t\.co$/, "x"]];
+    var deRef = ref;
+    conocidos.forEach(function (c) { if (c[0].test(ref)) deRef = c[1]; });
+    var fuente = (params.get("utm_source") || deRef || "directo").toLowerCase().slice(0, 40);
+    var campana = (params.get("utm_campaign") || "").slice(0, 60);
+    o = { fuente: fuente + (campana ? " · " + campana : ""), entrada: pagina };
+    try { sessionStorage.setItem("hrtic_origen", JSON.stringify(o)); } catch (e) { /* sin almacenamiento: igual funciona */ }
+    return o;
+  })();
+
+  // Medición sin cookies (GoatCounter): clics que acercan a una consulta.
+  function evento(nombre, titulo) {
+    try {
+      if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: nombre, title: titulo, event: true });
+    } catch (e) { /* si el bloqueador de anuncios lo impide, la web sigue igual */ }
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a) return;
+    var h = a.getAttribute("href") || "";
+    if (/^https:\/\/wa\.me\//.test(h)) evento("clic-whatsapp-" + pagina, "WhatsApp desde " + pagina);
+    else if (/^mailto:/.test(h)) evento("clic-correo-" + pagina, "Correo desde " + pagina);
+    else if (/consultas\.html/.test(h) && pagina !== "consultas") evento("clic-consulta-" + pagina, "Hacia consultas desde " + pagina);
+    else if (/[?&]servicio=/.test(h)) evento("elige-" + (/personalizada/.test(h) ? "videollamada" : "escrita"), "Elige servicio en consultas");
+  });
+
+  // WhatsApp: el mensaje prellenado dice desde qué página (y qué fuente) escribe la persona.
+  document.querySelectorAll('a[href^="https://wa.me/"]').forEach(function (a) {
+    if (origen.fuente === "directo") return;
+    try {
+      var u = new URL(a.href);
+      var t = u.searchParams.get("text") || "";
+      u.searchParams.set("text", t.replace(/\)/, " · " + origen.fuente + ")"));
+      a.href = u.toString();
+    } catch (e) { /* se queda con el mensaje original */ }
   });
 
   // Fecha visible en la hoja de reclamación
@@ -26,7 +89,6 @@
   if (lrFecha) lrFecha.textContent = fechaTxt;
 
   // Prellenado desde la URL (?tema=03, ?tipo=profesional)
-  var params = new URLSearchParams(location.search);
   var tema = document.getElementById("c-tema");
   if (tema && params.get("tema")) tema.value = params.get("tema");
   if (params.get("tipo") === "profesional") {
@@ -40,6 +102,8 @@
     new FormData(form).forEach(function (v, k) { o[k] = String(v).trim(); });
     o.pagina = location.pathname;
     o.enviado = new Date().toISOString();
+    o.fuente = origen.fuente;
+    o.entrada = origen.entrada;
     return o;
   }
 
@@ -92,7 +156,7 @@
       aviso(fc, "info", "Se abrió tu programa de correo con el mensaje listo para enviar.");
       return;
     }
-    if (res && res.ok) { fc.reset(); aviso(fc, "ok", "Recibimos tu mensaje. Te respondemos al correo que indicaste."); }
+    if (res && res.ok) { evento("envio-contacto", "Mensaje de contacto enviado"); fc.reset(); aviso(fc, "ok", "Recibimos tu mensaje. Te respondemos al correo que indicaste."); }
     else aviso(fc, "error", "No se pudo enviar. Escríbenos a eluna@hrticonsultores.com.");
   });
 
@@ -130,6 +194,7 @@
     enviar(fq, function (res, local) {
       if (local) { aviso(fq, "error", "El registro de consultas aún no está conectado. Escríbenos a eluna@hrticonsultores.com."); return; }
       if (res && res.ok) {
+        evento("envio-consulta-" + elegido("servicio", "escrita"), "Consulta registrada");
         fq.reset(); modo();
         aviso(fq, "ok", "Registramos tu consulta N.° " + res.numero + ". Te enviamos a tu correo el precio total (S/ " + res.total +
           ") y los datos de pago. Si no lo ves en unos minutos, revisa la carpeta de spam o correo no deseado y márcalo como «No es spam»: así te llegan también los siguientes correos de tu consulta.");

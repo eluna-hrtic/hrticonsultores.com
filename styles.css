@@ -1,7 +1,13 @@
-/* HRTIC · sitio web v1 · 22/09/2026
+/* HRTIC · sitio web v1.3 · 23/09/2026 (fuente Poppins servida desde el sitio; contraste AA en textos secundarios)
    Sistema: fondo blanco, cian #009DDE (acento), grafito #262325 (texto), Poppins.
    El cian de marca no alcanza contraste AA para texto pequeño sobre blanco:
    para enlaces y textos se usa --cian-texto; el #009DDE queda para acentos y superficies. */
+
+/* Poppins (SIL Open Font License 1.1), subconjunto latino, servida desde el propio sitio: sin pedir nada a terceros. */
+@font-face { font-family: "Poppins"; font-style: normal; font-weight: 400; font-display: swap; src: url(/poppins-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Poppins"; font-style: normal; font-weight: 500; font-display: swap; src: url(/poppins-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Poppins"; font-style: normal; font-weight: 600; font-display: swap; src: url(/poppins-latin-600-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Poppins"; font-style: normal; font-weight: 700; font-display: swap; src: url(/poppins-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 
 :root {
   --cian: #009DDE;
@@ -9,7 +15,7 @@
   --cian-suave: #E6F5FC;
   --grafito: #262325;
   --texto-2: #57535A;
-  --texto-3: #7A7680;
+  --texto-3: #6B6770; /* 5.2:1 sobre el gris de fondo: AA para texto pequeño */
   --fondo: #FFFFFF;
   --fondo-2: #F5F8FA;
   --borde: #E3E7EC;
@@ -324,3 +330,28 @@ fieldset.campo { border: 1.5px solid var(--borde); border-radius: var(--radio-sm
 .rejilla-contacto > div > .caja { margin-top: 20px; }
 [hidden] { display: none !important; }
 @media (max-width: 720px) { .precios { grid-template-columns: 1fr; } }
+
+/* ---- Recomendaciones (v1.3): texto literal de LinkedIn, con nombre y fecha ---- */
+.testimonios { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.testimonio { margin: 0; background: var(--fondo); border: 1px solid var(--borde); border-radius: var(--radio); padding: 24px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 18px; box-shadow: var(--sombra); }
+.testimonio .tema { font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--cian-texto); }
+.testimonio blockquote { margin: 8px 0 0; font-size: .97rem; line-height: 1.6; color: var(--grafito); }
+.testimonio blockquote p { margin: 0; }
+.testimonio figcaption { display: flex; align-items: center; gap: 12px; font-size: .82rem; color: var(--texto-2); line-height: 1.35; }
+.testimonio figcaption strong { display: block; color: var(--grafito); font-size: .92rem; }
+.iniciales { flex: none; width: 42px; height: 42px; border-radius: 50%; background: var(--cian-suave); color: var(--cian-texto);
+  display: grid; place-items: center; font-weight: 700; font-size: .88rem; letter-spacing: .02em; }
+.nota-testimonios { font-size: .85rem; color: var(--texto-2); margin: 18px 0 0; }
+.cita-corta { margin: 22px 0 0; padding: 2px 0 2px 16px; border-left: 3px solid var(--cian); color: var(--texto-2); font-size: .95rem; max-width: 560px; }
+.cita-corta p { margin: 0; }
+.cita-corta cite { display: block; margin-top: 6px; font-style: normal; font-size: .8rem; color: var(--texto-3); }
+.confianza-marcas { margin: 18px 0 0; font-size: .9rem; color: var(--texto-2); }
+.confianza-marcas strong { color: var(--grafito); font-weight: 600; }
+@media (max-width: 720px) {
+  .portada { padding-top: 32px; }
+  .portada p.lead { font-size: 1.05rem; }
+  .portada .acciones { margin-top: 20px; }
+  .wsp-flotante { width: 52px; height: 52px; right: 14px; bottom: 14px; }
+}
+picture { display: contents; }
