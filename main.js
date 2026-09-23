@@ -48,7 +48,8 @@
     form.querySelectorAll("[required]").forEach(function (c) {
       var ok = c.type === "checkbox" ? c.checked :
         c.type === "radio" ? !!form.querySelector('input[name="' + c.name + '"]:checked') :
-        c.value.trim() !== "" && (c.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value.trim()));
+        c.value.trim() !== "" && (c.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value.trim())) &&
+        (!(c.minLength > 0) || c.value.trim().length >= c.minLength);
       c.setAttribute("aria-invalid", ok ? "false" : "true");
       if (!ok && !primero) primero = c;
     });
@@ -87,6 +88,41 @@
     if (res && res.ok) { fc.reset(); aviso(fc, "ok", "Recibimos tu mensaje. Te respondemos al correo que indicaste."); }
     else aviso(fc, "error", "No se pudo enviar. Escríbenos a eluna@hrticonsultores.com.");
   });
+
+  // Consulta laboral por escrito: precio total según modalidad (Ley N.° 29571, art. 4.1)
+  var fq = document.getElementById("form-consulta");
+  if (fq) {
+    var MODOS = {
+      persona: { total: "S/ 59.00", detalle: "Consulta laboral para personas · incluye IGV", doc: "DNI o carné de extranjería", ayuda: "(para la boleta)", max: 12 },
+      empresa: { total: "S/ 177.00", detalle: "Consulta Express para empresas · incluye IGV", doc: "RUC", ayuda: "(para la factura)", max: 11 }
+    };
+    var razon = fq.querySelector(".solo-empresa");
+    var inRazon = document.getElementById("q-razon");
+    var inDoc = document.getElementById("q-documento");
+    var etiqueta = document.getElementById("q-documento-etiqueta");
+    var modo = function () {
+      var t = (fq.querySelector('input[name="tipo"]:checked') || {}).value || "persona";
+      var m = MODOS[t];
+      document.getElementById("q-total").textContent = m.total;
+      document.getElementById("q-detalle").textContent = m.detalle;
+      etiqueta.innerHTML = m.doc + ' <span class="ayuda">' + m.ayuda + "</span>";
+      inDoc.maxLength = m.max;
+      razon.hidden = t !== "empresa";
+      if (t === "empresa") inRazon.setAttribute("required", ""); else { inRazon.removeAttribute("required"); inRazon.removeAttribute("aria-invalid"); }
+    };
+    fq.querySelectorAll('input[name="tipo"]').forEach(function (r) { r.addEventListener("change", modo); });
+    if (params.get("tipo") === "empresa") { var re = fq.querySelector('input[name="tipo"][value="empresa"]'); if (re) re.checked = true; }
+    modo();
+    enviar(fq, function (res, local) {
+      if (local) { aviso(fq, "error", "El registro de consultas aún no está conectado. Escríbenos a eluna@hrticonsultores.com."); return; }
+      if (res && res.ok) {
+        fq.reset(); modo();
+        aviso(fq, "ok", "Registramos tu consulta N.° " + res.numero + ". Te enviamos a tu correo el precio total (S/ " + res.total +
+          ") y los datos de pago. Si no lo ves en unos minutos, revisa la carpeta de spam o correo no deseado y márcalo como «No es spam»: así te llegan también la confirmación del pago y la respuesta.");
+      } else if (res && res.error === "documento") aviso(fq, "error", "Revisa el documento: DNI de 8 dígitos, carné de extranjería o RUC de 11 dígitos, y la razón social si consultas como empresa.");
+      else aviso(fq, "error", "No se pudo registrar. Escríbenos a eluna@hrticonsultores.com.");
+    });
+  }
 
   // Libro de Reclamaciones
   var fl = document.getElementById("form-libro");
