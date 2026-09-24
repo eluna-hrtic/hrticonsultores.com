@@ -282,6 +282,42 @@
     });
   }
 
+  // Criterio HRTIC: filtro por tema, «Ver más» y copiar enlace. Sin JavaScript se ven todas las entregas.
+  var rejilla = document.querySelector(".criterio-rejilla[data-por-pagina]");
+  if (rejilla) {
+    var porPagina = +rejilla.getAttribute("data-por-pagina") || 12;
+    var mostrar = porPagina, filtro = "";
+    var botonMas = document.getElementById("criterio-mas");
+    var tarjetas = Array.prototype.slice.call(rejilla.querySelectorAll(".entrega"));
+    var pintar = function () {
+      var visibles = tarjetas.filter(function (t) { return !filtro || t.getAttribute("data-categoria") === filtro; });
+      tarjetas.forEach(function (t) { t.hidden = true; });
+      visibles.forEach(function (t, i) { t.hidden = i >= mostrar; });
+      if (botonMas) botonMas.hidden = visibles.length <= mostrar;
+    };
+    document.querySelectorAll(".filtro").forEach(function (b) {
+      b.addEventListener("click", function () {
+        filtro = b.getAttribute("data-filtro"); mostrar = porPagina;
+        document.querySelectorAll(".filtro").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+        pintar(); evento("criterio-filtro", "Filtro de Criterio HRTIC");
+      });
+    });
+    if (botonMas) botonMas.addEventListener("click", function () { mostrar += porPagina; pintar(); });
+    pintar();
+  }
+  document.querySelectorAll(".copiar-enlace").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var url = b.getAttribute("data-url");
+      var listo = function () { b.textContent = "Enlace copiado"; setTimeout(function () { b.textContent = "Copiar enlace"; }, 2500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(listo, function () { prompt("Copia el enlace:", url); });
+      else prompt("Copia el enlace:", url);
+    });
+  });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest(".compartir a") : null;
+    if (a) evento("criterio-compartir-" + (/linkedin/.test(a.href) ? "linkedin" : "whatsapp"), "Compartir entrega");
+  });
+
   // Libro de Reclamaciones
   var fl = document.getElementById("form-libro");
   if (fl) enviar(fl, function (res, local) {
