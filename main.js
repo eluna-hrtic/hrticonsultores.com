@@ -343,6 +343,26 @@
     });
   })();
 
+  // Confirmación y baja del boletín (v1.8.1): el enlace del correo abre suscripcion.html en el sitio,
+  // que llama al servicio de formularios. Así funciona aunque el navegador tenga varias cuentas de Google abiertas.
+  var sa = document.getElementById("sus-accion");
+  if (sa) (function () {
+    var q = new URLSearchParams(location.search), accion = q.get("accion") === "baja" ? "baja" : "confirmar";
+    var token = (q.get("token") || "").trim(), titulo = document.getElementById("sus-titulo"), texto = document.getElementById("sus-texto");
+    function mostrar(t, h) { titulo.textContent = t; texto.innerHTML = h; }
+    if (!token) { mostrar("Enlace incompleto", "<p>Abre el enlace completo desde el correo que te enviamos. Si el problema sigue, escríbenos a <a href=\"mailto:eluna@hrticonsultores.com\">eluna@hrticonsultores.com</a>.</p>"); return; }
+    fetch(sa.getAttribute("data-endpoint"), { method: "POST", body: JSON.stringify({ formulario: "suscripcion_accion", accion: accion, token: token }) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || !res.ok) throw new Error("respuesta");
+        mostrar(res.titulo, (res.prueba ? "<p class=\"aviso\">Página de prueba: no se registró ningún cambio.</p>" : "") + res.html);
+        if (typeof evento === "function") evento("boletin-" + res.tipo, "Boletín: " + res.tipo);
+      })
+      .catch(function () {
+        mostrar("No pudimos procesar el enlace", "<p>Vuelve a abrirlo en unos minutos. Si el problema sigue, escríbenos a <a href=\"mailto:eluna@hrticonsultores.com\">eluna@hrticonsultores.com</a> y lo resolvemos a mano.</p>");
+      });
+  })();
+
   // Libro de Reclamaciones
   var fl = document.getElementById("form-libro");
   if (fl) enviar(fl, function (res, local) {
