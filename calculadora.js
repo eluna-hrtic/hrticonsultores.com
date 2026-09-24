@@ -1,6 +1,7 @@
 /* HRTIC · calculadora de beneficios sociales · v1.3 · 24/09/2026 (indemnización MYPE solo por dozavos; costo laboral del empleador;
    v1.3: tope de 90 remuneraciones diarias de la CTS de la pequeña empresa y textos por régimen en el costo laboral;
-   v1.3.1: el Seguro Vida Ley es obligatorio también en la microempresa, D.S. 009-2020-TR, art. 2)
+   v1.3.1: el Seguro Vida Ley es obligatorio también en la microempresa, D.S. 009-2020-TR, art. 2;
+   v1.4: plazo fijo resuelto antes de tiempo en la MYPE: se muestran los dos cálculos, art. 56 MYPE y art. 76 LPCL)
    Cálculo orientativo de la liquidación al cese. Normas: D.S. 001-97-TR (CTS), Ley 27735 y D.S. 005-2002-TR
    (gratificaciones), Ley 30334 (bonificación extraordinaria), D. Leg. 713 y D.S. 012-92-TR (vacaciones),
    D.S. 003-97-TR, arts. 10, 38 y 76 (indemnización), TUO D.S. 013-2013-PRODUCE (micro y pequeña empresa).
@@ -208,21 +209,32 @@
     }
 
     // 4. Indemnización
-    var ind = 0, detInd = "", motivo = d.motivo || "renuncia";
+    var ind = 0, detInd = "", motivo = d.motivo || "renuncia", alternativas = null, sinInd = false;
     var enPrueba = total.meses < 3 || (total.meses === 3 && total.dias === 0);
     if (motivo === "despido" || motivo === "despido-modal") {
       if (enPrueba) {
         detInd = "Con 3 meses o menos de servicios no se supera el periodo de prueba: no hay indemnización por despido arbitrario (D.S. N.º 003-97-TR, arts. 10 y 38), salvo que el despido sea nulo.";
       } else if (motivo === "despido-modal") {
         var fin = fecha(d.finContrato);
-        if (reg !== "general") {
-          detInd = "Para contratos a plazo fijo en la micro y pequeña empresa, revisa tu caso en una consulta.";
-        } else if (!fin || fin <= cese) {
+        if (!fin || fin <= cese) {
           detInd = "Ingresa la fecha en que vencía tu contrato (posterior al cese).";
         } else {
           var falta = tiempo(masDias(cese, 1), fin);
           ind = Math.min(1.5 * rc * (falta.meses + falta.dias / 30), 12 * rc);
           detInd = "1.5 remuneraciones por cada mes que faltaba (" + falta.meses + " mes(es) y " + falta.dias + " día(s)), tope 12 (D.S. N.º 003-97-TR, art. 76)";
+          if (reg !== "general") {
+            // v1.4 (decisión de Ernesto, 24/09/2026): en la MYPE no hay norma expresa para el plazo fijo resuelto antes de tiempo.
+            // Se muestran los dos cálculos posibles y el total no incluye la indemnización.
+            var rdm = rc / 30, porA = reg === "pequena" ? 20 : 10, topeM = reg === "pequena" ? 120 : 90;
+            var ind56 = Math.min(porA * rdm * (anios + mesesSueltos / 12), topeM * rdm);
+            alternativas = [
+              { id: "ind56", nombre: "Según la norma MYPE (por años de servicio)", monto: r2(ind56),
+                detalle: porA + " remuneraciones diarias por año, con dozavos por los meses completos, tope " + topeM + " (TUO D.S. N.º 013-2013-PRODUCE, art. 56)" },
+              { id: "ind76", nombre: "Según la regla general del plazo fijo (por meses que faltaban)", monto: r2(ind), detalle: detInd }
+            ];
+            sinInd = true;
+            notas.push("Tu contrato era a plazo fijo en una " + (reg === "pequena" ? "pequeña empresa" : "microempresa") + ". La norma MYPE calcula la indemnización por despido injustificado por años de servicio (TUO D.S. N.º 013-2013-PRODUCE, art. 56); la ley general calcula la del contrato a plazo fijo resuelto antes de su vencimiento por los meses que faltaban (D.S. N.º 003-97-TR, art. 76). Ninguna norma dice de forma expresa cuál se aplica en la MYPE y no hemos ubicado un precedente vinculante: por eso te mostramos los dos montos. El total no incluye la indemnización.");
+          }
         }
       } else {
         // Régimen general: dozavos y treintavos (D.S. 003-97-TR, art. 38). MYPE: solo dozavos, es decir, meses completos
@@ -237,13 +249,14 @@
           detInd = porAnio + " remuneraciones diarias por año, con dozavos por los meses completos (los días sueltos no se pagan), tope " + tope + " (TUO D.S. N.º 013-2013-PRODUCE, art. 56)";
         }
       }
-      conceptos.push({ id: "ind", nombre: "Indemnización por despido arbitrario", monto: r2(ind), detalle: detInd });
+      if (!sinInd) conceptos.push({ id: "ind", nombre: "Indemnización por despido arbitrario", monto: r2(ind), detalle: detInd });
     }
 
     var suma = 0;
     conceptos.forEach(function (c) { suma += c.monto; });
     notas.push("Es un cálculo orientativo. No incluye descuentos (AFP u ONP e impuesto), horas extras, utilidades, remuneraciones pendientes ni lo que diga tu contrato o un convenio colectivo.");
-    return { conceptos: conceptos, total: r2(suma), rc: r2(rc), asignacion: r2(af),
+    if (alternativas) alternativas.forEach(function (a) { a.total = r2(suma + a.monto); });
+    return { conceptos: conceptos, total: r2(suma), rc: r2(rc), asignacion: r2(af), alternativas: alternativas,
              servicio: anios + " año(s), " + mesesSueltos + " mes(es) y " + total.dias + " día(s)", notas: notas };
   }
 
@@ -372,11 +385,17 @@
         return "<tr><td><strong>" + c.nombre + "</strong><br><span class=\"calc-nota\">" + c.detalle + "</span></td><td class=\"num\">" + soles(c.monto) + "</td></tr>";
       }).join("");
       salida.innerHTML =
-        '<span class="kicker">Resultado estimado</span>' +
+        '<span class="kicker">' + (r.alternativas ? "Resultado estimado sin la indemnización" : "Resultado estimado") + '</span>' +
         '<p class="total">' + soles(r.total) + "</p>" +
         '<p class="calc-nota">Tiempo de servicios: ' + r.servicio + " · Remuneración computable: " + soles(r.rc) + "</p>" +
         '<div class="tabla-scroll"><table class="tabla-guia"><thead><tr><th>Concepto</th><th class="num">Monto</th></tr></thead><tbody>' +
         filas + "</tbody></table></div>" +
+        (r.alternativas ? '<p style="margin-top:16px"><strong>Indemnización: dos cálculos posibles</strong></p>' +
+          '<div class="tabla-scroll"><table class="tabla-guia"><thead><tr><th>Cálculo</th><th class="num">Monto</th></tr></thead><tbody>' +
+          r.alternativas.map(function (a) {
+            return "<tr><td><strong>" + a.nombre + "</strong><br><span class=\"calc-nota\">" + a.detalle + "</span><br><span class=\"calc-nota\"><strong>Total con este cálculo: " +
+                   soles(a.total) + "</strong></span></td><td class=\"num\">" + soles(a.monto) + "</td></tr>";
+          }).join("") + "</tbody></table></div>" : "") +
         r.notas.map(function (t) { return '<p class="calc-nota">' + t + "</p>"; }).join("") +
         '<p><a class="boton boton-primario" href="consultas.html?servicio=escrita#registrar">Que un especialista revise mi liquidación</a></p>';
       salida.focus();

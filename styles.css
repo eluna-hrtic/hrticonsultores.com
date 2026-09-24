@@ -451,7 +451,7 @@ picture > source { display: none; }
 .guias-rejilla .tarjeta a.mas { font-weight: 600; }
 /* Calculadora */
 .calc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
-@media (max-width: 880px) { .calc { grid-template-columns: 1fr; } }
+@media (max-width: 880px) { .calc { grid-template-columns: minmax(0, 1fr); } }
 .calc-resultado { position: sticky; top: 90px; }
 .calc-resultado .total { font-size: 2rem; font-weight: 700; color: var(--grafito); margin: 4px 0 14px; }
 .calc-resultado .tabla-guia { margin-bottom: 10px; }
