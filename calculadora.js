@@ -1,4 +1,4 @@
-/* HRTIC · calculadora de beneficios sociales · v1.0 · 23/09/2026
+/* HRTIC · calculadora de beneficios sociales · v1.1 · 23/09/2026 (vacaciones pendientes y vencidas desde las fechas)
    Cálculo orientativo de la liquidación al cese. Normas: D.S. 001-97-TR (CTS), Ley 27735 y D.S. 005-2002-TR
    (gratificaciones), Ley 30334 (bonificación extraordinaria), D. Leg. 713 y D.S. 012-92-TR (vacaciones),
    D.S. 003-97-TR, arts. 10, 38 y 76 (indemnización), TUO D.S. 013-2013-PRODUCE (micro y pequeña empresa).
@@ -6,8 +6,8 @@
 (function () {
   "use strict";
 
-  var RMV = 1130;               // D.S. 006-2024-TR, vigente desde el 01/01/2025 (revisar cuando se publique el alza)
-  var ASIGNACION = RMV * 0.10;  // Ley 25129
+  var RMV = 1130;               // D.S. N.º 006-2024-TR, vigente desde el 01/01/2025 (revisar cuando se publique el alza)
+  var ASIGNACION = RMV * 0.10;  // Ley N.º 25129
 
   // ---------- fechas (en UTC para no depender de la zona horaria del navegador) ----------
   function fecha(txt) {
@@ -64,7 +64,7 @@
     var cesY = cese.getUTCFullYear(), cesM = cese.getUTCMonth(), cesD = cese.getUTCDate();
 
     if (d.menosDe4h) {
-      notas.push("Con una jornada menor de 4 horas diarias en promedio no corresponde la CTS (D.S. 001-97-TR, art. 4) y la protección contra el despido arbitrario tiene reglas propias. Te conviene revisar tu caso en una consulta.");
+      notas.push("Con una jornada menor de 4 horas diarias en promedio no corresponde la CTS (D.S. N.º 001-97-TR, art. 4) y la protección contra el despido arbitrario tiene reglas propias. Te conviene revisar tu caso en una consulta.");
     }
     if (mype && d.asignacion) {
       notas.push("En la micro y pequeña empresa la asignación familiar no es obligatoria. La calculadora la suma porque indicas que la recibes: si se paga, forma parte de tu remuneración.");
@@ -104,9 +104,9 @@
         notas.push("Cesaste en la primera quincena de " + (cesM === 4 ? "mayo" : "noviembre") + ": revisa que tu empleador haya depositado la CTS del semestre anterior. La calculadora asume que sí.");
       }
     } else if (reg === "micro") {
-      detCts = "La microempresa no paga CTS (TUO D.S. 013-2013-PRODUCE).";
+      detCts = "La microempresa no paga CTS (TUO D.S. N.º 013-2013-PRODUCE).";
     } else if (total.meses < 1) {
-      detCts = "Con menos de un mes de servicios no hay CTS (D.S. 001-97-TR, art. 2).";
+      detCts = "Con menos de un mes de servicios no hay CTS (D.S. N.º 001-97-TR, art. 2).";
     }
     conceptos.push({ id: "cts", nombre: "CTS trunca", monto: r2(cts), detalle: detCts });
 
@@ -128,7 +128,7 @@
         }
       }
       detGrat = yaDic && d.diciembrePagada !== false ? "Cesaste después del 15 de diciembre: la gratificación de diciembre ya debió pagarse completa, así que no queda trunca de ese semestre" :
-                g.meses + " mes(es) calendario completo(s) del semestre" + (g.meses < 1 ? ": se necesita al menos un mes íntegro (D.S. 005-2002-TR)" : "") +
+                g.meses + " mes(es) calendario completo(s) del semestre" + (g.meses < 1 ? ": se necesita al menos un mes íntegro (D.S. N.º 005-2002-TR)" : "") +
                 (reg === "pequena" ? "; pequeña empresa: media remuneración por semestre" : "");
       if (cesM === 6 && cesD < 15 && !d.julioPagada && ingreso <= dia(cesY, 5, 30)) {
         var gj = gratificacion(ingreso > dia(cesY, 0, 1) ? ingreso : dia(cesY, 0, 1), dia(cesY, 5, 30));
@@ -139,33 +139,56 @@
       }
       bonif = grat * tasaBonif;
     } else {
-      detGrat = "La microempresa no paga gratificaciones (TUO D.S. 013-2013-PRODUCE).";
+      detGrat = "La microempresa no paga gratificaciones (TUO D.S. N.º 013-2013-PRODUCE).";
     }
     conceptos.push({ id: "grat", nombre: "Gratificación trunca", monto: r2(grat), detalle: detGrat });
     conceptos.push({ id: "bonif", nombre: "Bonificación extraordinaria (" + (d.eps ? "6.75 %" : "9 %") + ")", monto: r2(bonif),
-                     detalle: reg === "micro" ? "No corresponde." : "Ley 30334: se paga junto con la gratificación, también la trunca." });
+                     detalle: reg === "micro" ? "No corresponde." : "Ley N.º 30334: se paga junto con la gratificación, también la trunca." });
 
-    // 3. Vacaciones truncas y vacaciones ganadas sin gozar
-    var diasAnio = mype ? 15 : 30, vacT = 0, detVac = "";
-    var aniv = ingreso, n = 0;
-    while (masMeses(ingreso, 12 * (n + 1)) <= cese) n++;
-    aniv = masMeses(ingreso, 12 * n);
-    var tVac = tiempo(aniv, cese);
-    if (total.meses >= 1 && !d.menosDe4h) {
-      var rv = rc * diasAnio / 30;
-      vacT = rv / 12 * tVac.meses + rv / 360 * tVac.dias;
-      detVac = tVac.meses + " mes(es) y " + tVac.dias + " día(s) de récord desde el " + fmtFecha(aniv) + " (" + diasAnio + " días por año)";
+    // 3. Vacaciones: cada año completo de servicios da derecho a 30 días (15 en la MYPE). Si ese descanso no se goza
+    //    dentro del año siguiente, además se debe la indemnización vacacional (D. Leg. N.º 713, art. 23). Los días que el
+    //    trabajador ya gozó se imputan a los periodos más antiguos; si superan lo ganado, se descuentan del récord trunco.
+    var diasAnio = mype ? 15 : 30, rdv = rc / 30, vacT = 0, detVac = "";
+    var gozados = Math.max(0, Math.floor(+d.vacGozadas || 0)), resto = gozados;
+    var diasPend = 0, diasVenc = 0, detPer = [];
+    if (!d.menosDe4h) {
+      for (var i = 1; i <= anios; i++) {
+        var usa = Math.min(resto, diasAnio); resto -= usa;
+        var queda = diasAnio - usa;
+        var iniPer = masMeses(ingreso, 12 * (i - 1)), finPer = masDias(masMeses(ingreso, 12 * i), -1);
+        var limite = masDias(masMeses(ingreso, 12 * (i + 1)), -1);   // último día para gozarlo
+        var vencido = cese > limite;
+        if (queda > 0) {
+          if (vencido) diasVenc += queda; else diasPend += queda;
+          detPer.push(fmtFecha(iniPer) + " al " + fmtFecha(finPer) + ": " + queda + " día(s) " +
+                      (vencido ? "vencidos (no se gozaron hasta el " + fmtFecha(limite) + ")" : "pendientes"));
+        }
+      }
+      if (total.meses >= 1) {
+        var diasTrunco = diasAnio * (mesesSueltos / 12 + total.dias / 360);
+        var desc = Math.min(resto, diasTrunco);
+        vacT = rdv * (diasTrunco - desc);
+        detVac = mesesSueltos + " mes(es) y " + total.dias + " día(s) de récord desde el " + fmtFecha(masMeses(ingreso, 12 * anios)) +
+                 " (" + diasAnio + " días por año; D. Leg. N.º 713, art. 22)" +
+                 (desc > 0 ? ". Se descuentan " + (Math.round(desc * 100) / 100) + " día(s) de vacaciones adelantadas" : "");
+      } else {
+        detVac = "Se necesita al menos un mes de servicios (D.S. N.º 012-92-TR, art. 23).";
+      }
     } else {
-      detVac = total.meses < 1 ? "Se necesita al menos un mes de servicios (D.S. 012-92-TR, art. 23)." : "Revisa tu caso: jornada menor de 4 horas.";
+      detVac = "Con una jornada menor de 4 horas diarias no hay descanso vacacional (D.S. N.º 012-92-TR, art. 11).";
     }
     conceptos.push({ id: "vac", nombre: "Vacaciones truncas", monto: r2(vacT), detalle: detVac });
-    var pend = Math.max(0, +d.vacPendientes || 0), venc = Math.min(pend, Math.max(0, +d.vacVencidos || 0));
-    if (pend > 0) {
-      conceptos.push({ id: "vacpend", nombre: "Vacaciones ganadas sin gozar", monto: r2(rc / 30 * pend), detalle: pend + " día(s) × remuneración diaria" });
+    if (diasPend + diasVenc > 0) {
+      conceptos.push({ id: "vacpend", nombre: "Vacaciones ganadas y no gozadas", monto: r2(rdv * (diasPend + diasVenc)),
+                       detalle: (diasPend + diasVenc) + " día(s) × remuneración diaria de " + soles(rdv) + ". " + detPer.join("; ") });
     }
-    if (venc > 0) {
-      conceptos.push({ id: "indvac", nombre: "Indemnización vacacional", monto: r2(rc / 30 * venc),
-                       detalle: venc + " día(s) de un periodo que venció sin gozarse (D. Leg. 713, art. 23)" });
+    if (diasVenc > 0) {
+      conceptos.push({ id: "indvac", nombre: "Indemnización vacacional", monto: r2(rdv * diasVenc),
+                       detalle: diasVenc + " día(s) de descanso no gozado dentro del año siguiente a cuando se ganó (D. Leg. N.º 713, art. 23, literal c)" });
+      notas.push("La indemnización vacacional no corresponde a gerentes o representantes de la empresa que decidieron no gozar su descanso (D.S. N.º 012-92-TR, art. 24).");
+    }
+    if (gozados > 0 && diasPend + diasVenc === 0 && anios > 0) {
+      notas.push("Con los " + gozados + " día(s) que indicas haber gozado, no quedan vacaciones pendientes de años completos.");
     }
 
     // 4. Indemnización
@@ -173,7 +196,7 @@
     var enPrueba = total.meses < 3 || (total.meses === 3 && total.dias === 0);
     if (motivo === "despido" || motivo === "despido-modal") {
       if (enPrueba) {
-        detInd = "Con 3 meses o menos de servicios no se supera el periodo de prueba: no hay indemnización por despido arbitrario (D.S. 003-97-TR, arts. 10 y 38), salvo que el despido sea nulo.";
+        detInd = "Con 3 meses o menos de servicios no se supera el periodo de prueba: no hay indemnización por despido arbitrario (D.S. N.º 003-97-TR, arts. 10 y 38), salvo que el despido sea nulo.";
       } else if (motivo === "despido-modal") {
         var fin = fecha(d.finContrato);
         if (reg !== "general") {
@@ -183,17 +206,17 @@
         } else {
           var falta = tiempo(masDias(cese, 1), fin);
           ind = Math.min(1.5 * rc * (falta.meses + falta.dias / 30), 12 * rc);
-          detInd = "1.5 remuneraciones por cada mes que faltaba (" + falta.meses + " mes(es) y " + falta.dias + " día(s)), tope 12 (D.S. 003-97-TR, art. 76)";
+          detInd = "1.5 remuneraciones por cada mes que faltaba (" + falta.meses + " mes(es) y " + falta.dias + " día(s)), tope 12 (D.S. N.º 003-97-TR, art. 76)";
         }
       } else {
         var fr = anios + mesesSueltos / 12 + total.dias / 360;
         if (reg === "general") {
           ind = Math.min(1.5 * rc * fr, 12 * rc);
-          detInd = "1.5 remuneraciones ordinarias por año, con dozavos y treintavos; tope 12 (D.S. 003-97-TR, art. 38). Base: sueldo bruto con los conceptos remunerativos regulares";
+          detInd = "1.5 remuneraciones ordinarias por año, con dozavos y treintavos; tope 12 (D.S. N.º 003-97-TR, art. 38). Base: sueldo bruto con los conceptos remunerativos regulares";
         } else {
           var rd = rc / 30, porAnio = reg === "pequena" ? 20 : 10, tope = reg === "pequena" ? 120 : 90;
           ind = Math.min(porAnio * rd * fr, tope * rd);
-          detInd = porAnio + " remuneraciones diarias por año, tope " + tope + " (TUO D.S. 013-2013-PRODUCE)";
+          detInd = porAnio + " remuneraciones diarias por año, tope " + tope + " (TUO D.S. N.º 013-2013-PRODUCE)";
         }
       }
       conceptos.push({ id: "ind", nombre: "Indemnización por despido arbitrario", monto: r2(ind), detalle: detInd });
@@ -233,7 +256,7 @@
         regimen: campo("regimen").value, ingreso: campo("ingreso").value, cese: campo("cese").value,
         sueldo: campo("sueldo").value, variables: campo("variables").value, asignacion: campo("asignacion").checked,
         eps: campo("eps").checked, motivo: campo("motivo").value, finContrato: campo("finContrato").value,
-        vacPendientes: campo("vacPendientes").value, vacVencidos: campo("vacVencidos").value,
+        vacGozadas: campo("vacGozadas").value,
         menosDe4h: campo("menosDe4h").checked, julioPagada: campo("julioPagada").checked,
         diciembrePagada: !campo("diciembreNoPagada").checked
       };
