@@ -1,4 +1,4 @@
-/* HRTIC · sitio web v1.3 · 23/09/2026 (fuente Poppins servida desde el sitio; contraste AA en textos secundarios)
+/* HRTIC · sitio web v1.4.2 · 23/09/2026 (guías, calculadora, Nosotros rediseñada y nuevo WhatsApp)
    Sistema: fondo blanco, cian #009DDE (acento), grafito #262325 (texto), Poppins.
    El cian de marca no alcanza contraste AA para texto pequeño sobre blanco:
    para enlaces y textos se usa --cian-texto; el #009DDE queda para acentos y superficies. */
@@ -104,8 +104,10 @@ ul { margin: 0; padding: 0; }
 .menu a.boton-primario, .menu a.boton-primario:hover { background: var(--grafito); color: #fff; }
 
 /* ---------- Secciones ---------- */
-.seccion { padding: clamp(56px, 8vw, 104px) 0; }
+.seccion { padding: clamp(48px, 6vw, 80px) 0; }
 .seccion-gris { background: var(--fondo-2); }
+/* Dos secciones blancas seguidas no suman dos rellenos (v1.4.2). */
+.seccion:not(.seccion-gris) + .seccion:not(.seccion-gris) { padding-top: 0; }
 .kicker { display: inline-block; font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--cian-texto); margin-bottom: 14px; }
 .intro { max-width: 720px; margin-bottom: 40px; }
 .intro p { color: var(--texto-2); font-size: 1.05rem; }
@@ -153,6 +155,12 @@ a.tarjeta:hover { border-color: var(--cian); transform: translateY(-2px); color:
 .tarjeta .icono { width: 44px; height: 44px; color: var(--cian); }
 .tarjeta h3 { margin: 4px 0 2px; }
 .tarjeta p { color: var(--texto-2); font-size: .93rem; margin: 0; }
+/* Siete líneas sin celdas vacías: 4 arriba y 3 abajo, más anchas (v1.4.2). */
+.rejilla-siete { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.rejilla-siete > * { grid-column: span 3; }
+.rejilla-siete > :nth-child(n+5) { grid-column: span 4; }
+@media (max-width: 1080px) { .rejilla-siete > *, .rejilla-siete > :nth-child(n+5) { grid-column: span 6; } .rejilla-siete > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 600px) { .rejilla-siete > *, .rejilla-siete > :nth-child(n+5), .rejilla-siete > :last-child { grid-column: 1 / -1; } }
 
 /* ---------- Pasos ---------- */
 .pasos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; counter-reset: paso; list-style: none; padding: 0; margin: 0; }
@@ -193,6 +201,11 @@ a.tarjeta:hover { border-color: var(--cian); transform: translateY(-2px); color:
 .foto figcaption { padding: 10px 14px; font-size: .85rem; color: var(--texto-2); background: #fff; }
 .linea .cabeza .foto { max-width: 320px; }
 .foto-consulta { max-width: 340px; }
+/* Consultas v1.4.2: panel de marca en lugar de la foto de Ernesto. */
+.panel-marca { margin-top: 24px; padding: 28px; border-radius: var(--radio); background: #fff; border: 1px solid var(--borde); box-shadow: var(--sombra); }
+.panel-marca img { width: 150px; height: auto; margin-bottom: 18px; }
+.panel-marca-titulo { font-weight: 600; color: var(--grafito); margin-bottom: 14px; }
+.panel-marca .lista-check li { font-size: .93rem; color: var(--texto-2); }
 @media (max-width: 720px) {
   .linea .cabeza .foto { max-width: 340px; }
 }
@@ -230,12 +243,17 @@ a.tarjeta:hover { border-color: var(--cian); transform: translateY(-2px); color:
 @media (max-width: 720px) { .franja { grid-template-columns: 1fr; } }
 
 /* ---------- Detalle de líneas (Empresas / Profesionales) ---------- */
+/* Cabecera de Empresas con ficha lateral (v1.4.2). */
+.hero-dos { display: grid; grid-template-columns: 1.25fr .75fr; gap: 48px; align-items: center; margin-bottom: 8px; }
+.hero-dos .intro { margin-bottom: 0; }
+@media (max-width: 880px) { .hero-dos { grid-template-columns: 1fr; gap: 28px; } }
 .indice { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin-bottom: 8px; }
 .indice a { display: inline-block; padding: 8px 14px; border-radius: 999px; background: var(--fondo-2); text-decoration: none; font-size: .88rem; font-weight: 500; color: var(--grafito); }
 .indice a:hover { background: var(--cian-suave); color: var(--cian-texto); }
 .linea { display: grid; grid-template-columns: 280px 1fr; gap: 40px; padding: 48px 0; border-top: 1px solid var(--borde); scroll-margin-top: 90px; }
 .linea:first-of-type { border-top: 0; }
-.linea .cabeza .icono { width: 56px; height: 56px; color: var(--cian); margin-bottom: 14px; }
+.linea .cabeza .icono { display: block; width: 56px; height: 56px; color: var(--cian); margin-bottom: 14px; }
+.linea .cabeza .icono svg, .tarjeta .icono svg { display: block; width: 100%; height: 100%; }
 .linea .cabeza .num { font-size: .78rem; font-weight: 700; letter-spacing: .12em; color: var(--cian-texto); }
 .linea .cabeza p { color: var(--texto-2); font-size: .95rem; }
 .linea h3.sub { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-3); margin: 22px 0 10px; font-weight: 600; }
@@ -246,7 +264,7 @@ a.tarjeta:hover { border-color: var(--cian); transform: translateY(-2px); color:
 .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 8px; }
 .caja { background: var(--fondo-2); border-radius: var(--radio-sm); padding: 18px 20px; font-size: .93rem; color: var(--texto-2); }
 .caja strong { display: block; color: var(--grafito); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
-@media (max-width: 880px) { .linea { grid-template-columns: 1fr; gap: 16px; } .dos-col { grid-template-columns: 1fr; } }
+@media (max-width: 880px) { .linea { grid-template-columns: 1fr; gap: 16px; padding: 32px 0; } .dos-col { grid-template-columns: 1fr; } }
 
 /* ---------- Valores ---------- */
 .valores { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; list-style: none; }
@@ -255,6 +273,44 @@ a.tarjeta:hover { border-color: var(--cian); transform: translateY(-2px); color:
 .valores span { color: var(--texto-2); font-size: .93rem; }
 .mvv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .mvv .tarjeta p { font-size: .96rem; }
+/* Nosotros v1.4.2: ficha «HRTIC en breve» y valores sobre fondo blanco */
+.portada-nosotros .contenedor { align-items: start; }
+.portada-nosotros .lead + .lead { margin-top: -4px; }
+.datos-breves { display: grid; gap: 14px; margin: 0; }
+.datos-breves > div { display: grid; gap: 2px; padding-bottom: 14px; border-bottom: 1px solid var(--borde); }
+.datos-breves > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.datos-breves dt { font-size: .72rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--cian-texto); }
+.datos-breves dd { margin: 0; font-size: .94rem; color: var(--grafito); }
+.valores-borde li { background: var(--fondo-2); }
+/* Nosotros v1.4.2: cifras, valores numerados, equipo con retrato y red de especialistas. */
+.banda-cifras { background: var(--grafito); color: #fff; padding: 40px 0; }
+.banda-cifras .contenedor { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
+.cifra strong { display: block; font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; color: var(--cian); margin-bottom: 10px; }
+.cifra span { font-size: .92rem; color: #D6D3D8; line-height: 1.45; display: block; }
+@media (max-width: 880px) { .banda-cifras .contenedor { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mvv .tarjeta .icono { width: 40px; height: 40px; }
+ol.valores { counter-reset: valor; padding: 0; margin: 0; }
+ol.valores li { counter-increment: valor; position: relative; padding-top: 44px; }
+ol.valores li::before { content: counter(valor, decimal-leading-zero); position: absolute; top: 18px; left: 22px; font-size: .78rem; font-weight: 700; letter-spacing: .12em; color: var(--cian-texto); }
+.equipo { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; }
+.retrato { margin: 0; position: relative; border-radius: var(--radio); overflow: hidden; box-shadow: var(--sombra); background: var(--cian-suave); }
+.retrato img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; }
+.retrato figcaption { position: absolute; left: 16px; right: 16px; bottom: 16px; background: rgba(38, 35, 37, .88); color: #fff; border-radius: var(--radio-sm); padding: 12px 16px; font-size: .88rem; line-height: 1.35; }
+.retrato figcaption strong { display: block; font-size: 1rem; }
+.equipo p { color: var(--texto-2); }
+.red-especialistas { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 22px 0 24px; }
+.red-especialistas li { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio-sm); padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.red-especialistas .icono { width: 32px; height: 32px; color: var(--cian); }
+.red-especialistas .icono svg { width: 100%; height: 100%; display: block; }
+.red-especialistas strong { font-size: .95rem; line-height: 1.3; }
+.red-especialistas span:last-child { font-size: .86rem; color: var(--texto-2); line-height: 1.45; }
+@media (max-width: 1080px) { .red-especialistas { grid-template-columns: 1fr; } }
+@media (max-width: 880px) { .equipo { grid-template-columns: 1fr; gap: 32px; } .retrato { max-width: 420px; } }
+.dos-franjas { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+.dos-franjas .franja { grid-template-columns: 1fr; }
+.tarjeta-empleos { justify-content: center; }
+.tarjeta-empleos .ir { font-weight: 600; color: var(--cian-texto); margin-top: 6px; }
+@media (max-width: 880px) { .dos-franjas { grid-template-columns: 1fr; } }
 @media (max-width: 880px) { .mvv { grid-template-columns: 1fr; } }
 
 /* ---------- Formularios ---------- */
@@ -292,6 +348,7 @@ fieldset.campo { border: 1.5px solid var(--borde); border-radius: var(--radio-sm
 /* ---------- Texto legal ---------- */
 .legal { max-width: 800px; }
 .legal h2 { font-size: 1.3rem; margin-top: 2em; }
+.legal .kicker + h2 { font-size: clamp(1.55rem, 3vw, 2.2rem); margin-top: 0; margin-bottom: .8em; }
 .legal p, .legal li { color: var(--texto-2); }
 .legal ul { padding-left: 1.2em; margin-bottom: 1em; }
 .hoja-cabecera { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 18px 20px; background: var(--fondo-2); border-radius: var(--radio-sm); font-size: .92rem; }
@@ -355,3 +412,109 @@ fieldset.campo { border: 1.5px solid var(--borde); border-radius: var(--radio-sm
   .wsp-flotante { width: 52px; height: 52px; right: 14px; bottom: 14px; }
 }
 picture { display: contents; }
+/* Con display: contents, el <source> quedaba como celda de la rejilla y desordenaba Nosotros (corregido v1.4.1). */
+picture > source { display: none; }
+
+/* ---------- v1.4 · guías y calculadora (23/09/2026) ---------- */
+@media (min-width: 881px) and (max-width: 1120px) { .menu a { padding: 8px 9px; font-size: .9rem; } }
+.migas { font-size: .85rem; color: var(--texto-3); margin-bottom: 18px; }
+.migas a { color: var(--texto-2); }
+.articulo { max-width: 780px; }
+.articulo h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); }
+.articulo h2 { font-size: clamp(1.3rem, 2.4vw, 1.6rem); margin-top: 2.2em; }
+.articulo h3 { margin-top: 1.6em; }
+.articulo p, .articulo li { color: var(--texto-2); }
+.articulo ul, .articulo ol { padding-left: 1.25em; margin-bottom: 1em; }
+.articulo li + li { margin-top: 6px; }
+.articulo .firma-guia { font-size: .88rem; color: var(--texto-3); border-top: 1px solid var(--borde); padding-top: 12px; margin-top: 8px; }
+.resumen { background: var(--cian-suave); border-radius: var(--radio); padding: 22px 24px; margin: 26px 0 8px; }
+.resumen h2 { font-size: 1.05rem; margin: 0 0 10px; color: var(--grafito); }
+.resumen ul { margin: 0; }
+.resumen li { color: var(--grafito); }
+.tabla-guia { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 14px 0 22px; }
+.tabla-guia th, .tabla-guia td { border-bottom: 1px solid var(--borde); padding: 10px 8px; text-align: left; vertical-align: top; }
+.tabla-guia th { font-weight: 600; color: var(--grafito); background: var(--fondo-2); }
+.tabla-guia td { color: var(--texto-2); }
+.tabla-guia td.num, .tabla-guia th.num { text-align: right; white-space: nowrap; }
+.tabla-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ejemplo { border-left: 4px solid var(--cian); background: var(--fondo-2); border-radius: 0 var(--radio-sm) var(--radio-sm) 0; padding: 16px 20px; margin: 18px 0; }
+.ejemplo p:last-child { margin-bottom: 0; }
+.cta-guia { background: var(--grafito); color: #fff; border-radius: var(--radio); padding: 28px; margin-top: 40px; }
+.cta-guia h2 { color: #fff; margin: 0 0 8px; font-size: 1.35rem; }
+.cta-guia p { color: #E8E6EA; }
+.cta-guia .acciones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.cta-guia .boton-borde { color: #fff; border-color: rgba(255,255,255,.6); }
+.aviso-guia { font-size: .85rem; color: var(--texto-3); margin-top: 22px; }
+.guias-rejilla .tarjeta p { font-size: .93rem; }
+.guias-rejilla .tarjeta a.mas { font-weight: 600; }
+/* Calculadora */
+.calc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 880px) { .calc { grid-template-columns: 1fr; } }
+.calc-resultado { position: sticky; top: 90px; }
+.calc-resultado .total { font-size: 2rem; font-weight: 700; color: var(--grafito); margin: 4px 0 14px; }
+.calc-resultado .tabla-guia { margin-bottom: 10px; }
+.calc-nota { font-size: .85rem; color: var(--texto-3); }
+.calc [hidden] { display: none !important; }
+.calc-resultado .tabla-guia .num { font-size: .95rem; letter-spacing: 0; color: var(--grafito); font-weight: 600; }
+.guias-rejilla .tarjeta h2 { font-size: 1.15rem; font-weight: 600; margin: 4px 0 2px; }
+/* Cinco tarjetas del mismo tamaño y sin celdas vacías: 3 arriba y 2 abajo (v1.4.2). */
+.guias-rejilla { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.guias-rejilla > * { grid-column: span 2; }
+.guias-rejilla > :nth-child(n+4) { grid-column: span 3; }
+@media (max-width: 880px) { .guias-rejilla > *, .guias-rejilla > :nth-child(n+4) { grid-column: span 3; } .guias-rejilla > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 600px) { .guias-rejilla > *, .guias-rejilla > :nth-child(n+4), .guias-rejilla > :last-child { grid-column: 1 / -1; } }
+
+/* ---------- Empleos (v1.4.2): proceso, convocatorias, banco de talento y postulación ---------- */
+.pasos-lista { list-style: none; counter-reset: pl; margin: 0; padding: 0; display: grid; }
+.pasos-lista li { counter-increment: pl; position: relative; padding: 0 0 18px 46px; font-size: .9rem; color: var(--texto-2); line-height: 1.45; }
+.pasos-lista li::before { content: counter(pl); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--cian-suave); color: var(--cian-texto); font-weight: 700; font-size: .82rem; }
+.pasos-lista li::after { content: ""; position: absolute; left: 14px; top: 34px; bottom: 4px; width: 2px; background: var(--borde); }
+.pasos-lista li:last-child { padding-bottom: 0; }
+.pasos-lista li:last-child::after { display: none; }
+.pasos-lista strong { display: block; color: var(--grafito); font-size: .95rem; line-height: 1.3; padding-top: 5px; margin-bottom: 2px; }
+.nota-empleos { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; margin: 20px 0 0; padding: 12px 14px; border-radius: var(--radio-sm); background: var(--fondo-2); font-size: .86rem; font-weight: 600; color: var(--grafito); line-height: 1.4; }
+.nota-empleos svg { width: 22px; height: 22px; color: var(--cian-texto); display: block; }
+.convocatorias { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.convocatoria { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 18px; padding: 30px 28px 26px; background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra); scroll-margin-top: 90px; }
+.convocatoria::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--cian); }
+.conv-cuerpo { display: flex; flex-direction: column; gap: 10px; }
+.conv-lado { display: flex; flex-direction: column; gap: 12px; margin-top: auto; }
+.convocatoria .num { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--cian-texto); }
+.convocatoria h3 { font-size: 1.3rem; margin: 0; }
+.convocatoria p { margin: 0; color: var(--texto-2); font-size: .95rem; }
+.convocatoria p.conv-meta { font-size: .9rem; }
+.convocatoria p.conv-rem { align-self: flex-start; padding: 10px 14px; border-radius: var(--radio-sm); background: var(--cian-suave); color: var(--grafito); font-weight: 600; font-size: .9rem; line-height: 1.4; }
+.convocatoria p.conv-rem::before { content: "Remuneración"; display: block; font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--cian-texto); margin-bottom: 2px; }
+.convocatoria details { border-top: 1px solid var(--borde); padding-top: 12px; margin-top: 2px; }
+.convocatoria summary { cursor: pointer; font-weight: 600; font-size: .92rem; color: var(--cian-texto); }
+.convocatoria details h4 { font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-3); margin: 16px 0 6px; }
+.convocatoria details ul { padding-left: 1.2em; color: var(--texto-2); font-size: .93rem; display: grid; gap: 4px; }
+.convocatoria p.conv-cierre { font-size: .85rem; color: var(--texto-3); line-height: 1.55; }
+.convocatoria p.conv-cierre strong { color: var(--grafito); font-weight: 600; }
+.convocatoria .boton { align-self: flex-start; }
+/* Una sola convocatoria (o la última de una lista impar): ancho completo, con la postulación a la derecha. Sin huecos. */
+@media (min-width: 881px) {
+  .convocatoria:last-child:nth-child(odd) { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 40px; padding: 34px 36px; }
+  .convocatoria:last-child:nth-child(odd) .conv-cuerpo { max-width: 760px; }
+  .convocatoria:last-child:nth-child(odd) .conv-lado { margin-top: 0; padding-left: 32px; border-left: 1px solid var(--borde); justify-content: center; }
+  .convocatoria:last-child:nth-child(odd) .boton { align-self: stretch; }
+  .convocatoria:last-child:nth-child(odd) p.conv-rem { align-self: stretch; }
+}
+@media (max-width: 880px) { .convocatorias { grid-template-columns: 1fr; } }
+.sin-convocatorias { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; grid-template-areas: "icono titulo accion" "icono texto accion"; column-gap: 22px; row-gap: 4px; align-items: center; padding: 28px 32px; box-shadow: var(--sombra); }
+.sin-convocatorias .icono { grid-area: icono; align-self: start; width: 56px; height: 56px; padding: 13px; border-radius: 16px; background: var(--cian-suave); color: var(--cian-texto); }
+.sin-convocatorias h3 { grid-area: titulo; margin: 0; align-self: end; }
+.sin-convocatorias p { grid-area: texto; margin: 0; align-self: start; }
+.sin-convocatorias .boton { grid-area: accion; }
+@media (max-width: 720px) { .sin-convocatorias { grid-template-columns: 1fr; grid-template-areas: "icono" "titulo" "texto" "accion"; row-gap: 10px; padding: 26px 22px; } .sin-convocatorias .boton { justify-self: start; margin-top: 6px; } }
+.campo input[type="file"] { padding: 10px; border-style: dashed; background: var(--fondo-2); cursor: pointer; }
+.campo input[type="file"]::file-selector-button { font: inherit; font-weight: 600; font-size: .88rem; margin-right: 14px; padding: 10px 16px; border: 0; border-radius: 999px; background: var(--grafito); color: #fff; cursor: pointer; }
+.campo [aria-invalid="true"], .consentimiento input[aria-invalid="true"] { border-color: var(--error); outline: 2px solid rgba(180, 35, 24, .25); outline-offset: 1px; }
+/* Empleos: la guía «Antes de enviar» acompaña al formulario mientras se completa (sin hueco a la izquierda). */
+@media (min-width: 881px) { #postular .rejilla-contacto > div:first-child { position: sticky; top: 96px; } }
+/* Franja oscura de las guías: botones visibles sin pasar el mouse (corregido v1.4.2; antes el primario se fundía con la franja
+   y el de borde quedaba con texto blanco sobre fondo blanco). */
+.cta-guia .boton-primario { background: var(--cian); color: var(--grafito); }
+.cta-guia .boton-primario:hover { background: #33B1E5; color: var(--grafito); }
+.cta-guia .boton-borde { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .75); }
+.cta-guia .boton-borde:hover { background: #fff; color: var(--grafito); border-color: #fff; }

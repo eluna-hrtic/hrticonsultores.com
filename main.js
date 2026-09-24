@@ -1,4 +1,4 @@
-/* HRTIC · sitio web v1.3 · comportamiento mínimo, sin dependencias */
+/* HRTIC · sitio web v1.4.2 · comportamiento mínimo, sin dependencias (postulación en línea desde la v1.4.2) */
 (function () {
   "use strict";
 
@@ -99,7 +99,7 @@
 
   function datos(form) {
     var o = {};
-    new FormData(form).forEach(function (v, k) { o[k] = String(v).trim(); });
+    new FormData(form).forEach(function (v, k) { if (typeof v === "string") o[k] = v.trim(); }); // los archivos van aparte
     o.pagina = location.pathname;
     o.enviado = new Date().toISOString();
     o.fuente = origen.fuente;
@@ -128,7 +128,8 @@
     return true;
   }
 
-  function enviar(form, alTerminar) {
+  // «preparar» (opcional) completa los datos antes de enviarlos, por ejemplo con el CV; si falla, muestra su propio aviso.
+  function enviar(form, alTerminar, preparar) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (!validar(form)) { aviso(form, "error", "Revisa los campos obligatorios."); return; }
@@ -137,9 +138,13 @@
       if (!endpoint) { alTerminar(null, datos(form)); return; }
       btn.disabled = true;
       aviso(form, "info", "Enviando…");
-      fetch(endpoint, { method: "POST", body: JSON.stringify(datos(form)) })
-        .then(function (r) { return r.json(); })
-        .then(function (res) { alTerminar(res, null); })
+      Promise.resolve(preparar ? preparar(datos(form)) : datos(form))
+        .then(function (d) {
+          if (!d) return null;
+          return fetch(endpoint, { method: "POST", body: JSON.stringify(d) })
+            .then(function (r) { return r.json(); })
+            .then(function (res) { alTerminar(res, null); });
+        })
         .catch(function () { aviso(form, "error", "No se pudo enviar. Escríbenos a eluna@hrticonsultores.com."); })
         .finally(function () { btn.disabled = false; });
     });
@@ -160,7 +165,7 @@
     else aviso(fc, "error", "No se pudo enviar. Escríbenos a eluna@hrticonsultores.com.");
   });
 
-  // Consultas: precio total según el servicio (Ley N.° 29571, art. 4.1); el comprobante define el documento
+  // Consultas: precio total según el servicio (Ley N.º 29571, art. 4.1); el comprobante define el documento
   var fq = document.getElementById("form-consulta");
   if (fq) {
     var SERVICIOS = {
@@ -196,10 +201,84 @@
       if (res && res.ok) {
         evento("envio-consulta-" + elegido("servicio", "escrita"), "Consulta registrada");
         fq.reset(); modo();
-        aviso(fq, "ok", "Registramos tu consulta N.° " + res.numero + ". Te enviamos a tu correo el precio total (S/ " + res.total +
+        aviso(fq, "ok", "Registramos tu consulta N.º " + res.numero + ". Te enviamos a tu correo el precio total (S/ " + res.total +
           ") y los datos de pago. Si no lo ves en unos minutos, revisa la carpeta de spam o correo no deseado y márcalo como «No es spam»: así te llegan también los siguientes correos de tu consulta.");
       } else if (res && res.error === "documento") aviso(fq, "error", "Revisa el documento: DNI de 8 dígitos, carné de extranjería o RUC de 11 dígitos, y la razón social si pides factura.");
       else aviso(fq, "error", "No se pudo registrar. Escríbenos a eluna@hrticonsultores.com.");
+    });
+  }
+
+  // Empleos: postulación con CV en PDF (hasta 5 MB). El CV viaja en base64 y se guarda en una carpeta privada de Drive.
+  var fp = document.getElementById("form-postulacion");
+  if (fp) {
+    var selConv = document.getElementById("p-convocatoria");
+    var chkCompartir = document.getElementById("p-compartir");
+    var txtCompartir = document.getElementById("p-compartir-texto");
+    var inCv = document.getElementById("p-cv");
+    var TEXTO_BANCO = txtCompartir.innerHTML;
+    var TEXTO_CLIENTE = "Autorizo que HRTIC comparta mi CV con la empresa que contrata el proceso al que postulo. Es necesario para postular a esta convocatoria.";
+    var tipoConv = function () { var o = selConv.options[selConv.selectedIndex]; return (o && o.getAttribute("data-tipo")) || "banco"; };
+    var ajustarCompartir = function () {
+      if (tipoConv() === "cliente") { chkCompartir.setAttribute("required", ""); txtCompartir.textContent = TEXTO_CLIENTE; }
+      else { chkCompartir.removeAttribute("required"); chkCompartir.removeAttribute("aria-invalid"); txtCompartir.innerHTML = TEXTO_BANCO; }
+    };
+    var elegirConv = function (id) {
+      for (var i = 0; i < selConv.options.length; i++) if (selConv.options[i].value === id) { selConv.selectedIndex = i; break; }
+      ajustarCompartir();
+    };
+    selConv.addEventListener("change", ajustarCompartir);
+    document.querySelectorAll("a[data-convocatoria]").forEach(function (a) {
+      a.addEventListener("click", function () { elegirConv(a.getAttribute("data-convocatoria")); evento("elige-convocatoria", "Elige convocatoria"); });
+    });
+    if (params.get("convocatoria")) elegirConv(params.get("convocatoria"));
+    ajustarCompartir();
+
+    var MAX_CV = 5 * 1024 * 1024;
+    var leerCv = function (archivo) {
+      return new Promise(function (ok, mal) {
+        var lector = new FileReader();
+        lector.onload = function () { ok(new Uint8Array(lector.result)); };
+        lector.onerror = function () { mal(lector.error); };
+        lector.readAsArrayBuffer(archivo);
+      });
+    };
+    var aBase64 = function (bytes) {
+      var partes = [], paso = 0x8000;
+      for (var i = 0; i < bytes.length; i += paso) partes.push(String.fromCharCode.apply(null, bytes.subarray(i, i + paso)));
+      return btoa(partes.join(""));
+    };
+    var errorCv = function (texto) { inCv.setAttribute("aria-invalid", "true"); inCv.focus(); aviso(fp, "error", texto); return null; };
+    inCv.addEventListener("change", function () {
+      var f = inCv.files && inCv.files[0];
+      inCv.removeAttribute("aria-invalid");
+      if (f && f.size > MAX_CV) errorCv("Tu CV pesa " + (f.size / 1048576).toFixed(1) + " MB. El máximo es 5 MB: guárdalo de nuevo en PDF con menos imágenes.");
+    });
+
+    enviar(fp, function (res, local) {
+      if (local) { aviso(fp, "error", "La postulación en línea aún no está conectada. Envía tu CV a eluna@hrticonsultores.com."); return; }
+      if (res && res.ok) {
+        evento("envio-postulacion-" + tipoConv(), "Postulación enviada");
+        fp.reset(); ajustarCompartir();
+        aviso(fp, "ok", "Recibimos tu postulación N.º " + res.numero + ". Te enviamos la confirmación a tu correo; si no la ves en unos minutos, revisa la carpeta de spam o correo no deseado.");
+      } else if (res && res.error === "cv") errorCv("Revisa tu CV: debe ser un archivo PDF de hasta 5 MB.");
+      else if (res && res.error === "compartir") { chkCompartir.focus(); aviso(fp, "error", "Para postular a esta convocatoria necesitamos tu autorización para compartir tu CV con la empresa."); }
+      else if (res && res.error === "limite") aviso(fp, "error", "Recibimos varias postulaciones desde este correo en la última hora. Inténtalo más tarde o escríbenos a eluna@hrticonsultores.com.");
+      else aviso(fp, "error", "No se pudo enviar. Envía tu CV a eluna@hrticonsultores.com.");
+    }, function (d) {
+      var f = inCv.files && inCv.files[0];
+      if (!f) return errorCv("Adjunta tu CV en PDF.");
+      if (!/\.pdf$/i.test(f.name) && f.type !== "application/pdf") return errorCv("Tu CV debe estar en PDF. Guárdalo como PDF desde Word o Google Docs y vuelve a adjuntarlo.");
+      if (f.size > MAX_CV) return errorCv("Tu CV pesa " + (f.size / 1048576).toFixed(1) + " MB. El máximo es 5 MB.");
+      return leerCv(f).then(function (bytes) {
+        // Firma de un PDF: «%PDF-» al inicio (un .pdf renombrado desde otro formato no la tiene).
+        if (String.fromCharCode.apply(null, bytes.subarray(0, 5)) !== "%PDF-") return errorCv("El archivo no es un PDF válido. Vuelve a guardarlo como PDF.");
+        var o = selConv.options[selConv.selectedIndex];
+        d.tipo_convocatoria = tipoConv();
+        d.convocatoria_titulo = o ? o.textContent.trim() : "";
+        d.cvNombre = f.name.slice(0, 120);
+        d.cvBase64 = aBase64(bytes);
+        return d;
+      });
     });
   }
 
@@ -210,7 +289,7 @@
     if (res && res.ok) {
       document.getElementById("lr-numero").textContent = res.numero;
       fl.reset();
-      aviso(fl, "ok", "Hoja N.° " + res.numero + " registrada el " + fechaTxt + ". Te enviamos una copia a tu correo. Puedes imprimir esta página como constancia.");
+      aviso(fl, "ok", "Hoja N.º " + res.numero + " registrada el " + fechaTxt + ". Te enviamos una copia a tu correo. Puedes imprimir esta página como constancia.");
     } else aviso(fl, "error", "No se pudo registrar. Escríbenos a eluna@hrticonsultores.com.");
   });
 })();
