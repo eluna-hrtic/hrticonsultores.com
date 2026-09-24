@@ -1,4 +1,4 @@
-/* HRTIC · calculadora de beneficios sociales · v1.1 · 23/09/2026 (vacaciones pendientes y vencidas desde las fechas)
+/* HRTIC · calculadora de beneficios sociales · v1.2 · 24/09/2026 (indemnización MYPE solo por dozavos; costo laboral del empleador)
    Cálculo orientativo de la liquidación al cese. Normas: D.S. 001-97-TR (CTS), Ley 27735 y D.S. 005-2002-TR
    (gratificaciones), Ley 30334 (bonificación extraordinaria), D. Leg. 713 y D.S. 012-92-TR (vacaciones),
    D.S. 003-97-TR, arts. 10, 38 y 76 (indemnización), TUO D.S. 013-2013-PRODUCE (micro y pequeña empresa).
@@ -209,14 +209,16 @@
           detInd = "1.5 remuneraciones por cada mes que faltaba (" + falta.meses + " mes(es) y " + falta.dias + " día(s)), tope 12 (D.S. N.º 003-97-TR, art. 76)";
         }
       } else {
-        var fr = anios + mesesSueltos / 12 + total.dias / 360;
+        // Régimen general: dozavos y treintavos (D.S. 003-97-TR, art. 38). MYPE: solo dozavos, es decir, meses completos
+        // (TUO D.S. 013-2013-PRODUCE, art. 56; igual en la Ley 32353, art. 50.2). Corrección del 24/09/2026.
+        var fr = anios + mesesSueltos / 12 + (reg === "general" ? total.dias / 360 : 0);
         if (reg === "general") {
           ind = Math.min(1.5 * rc * fr, 12 * rc);
           detInd = "1.5 remuneraciones ordinarias por año, con dozavos y treintavos; tope 12 (D.S. N.º 003-97-TR, art. 38). Base: sueldo bruto con los conceptos remunerativos regulares";
         } else {
           var rd = rc / 30, porAnio = reg === "pequena" ? 20 : 10, tope = reg === "pequena" ? 120 : 90;
           ind = Math.min(porAnio * rd * fr, tope * rd);
-          detInd = porAnio + " remuneraciones diarias por año, tope " + tope + " (TUO D.S. N.º 013-2013-PRODUCE)";
+          detInd = porAnio + " remuneraciones diarias por año, con dozavos por los meses completos (los días sueltos no se pagan), tope " + tope + " (TUO D.S. N.º 013-2013-PRODUCE, art. 56)";
         }
       }
       conceptos.push({ id: "ind", nombre: "Indemnización por despido arbitrario", monto: r2(ind), detalle: detInd });
@@ -227,6 +229,87 @@
     notas.push("Es un cálculo orientativo. No incluye descuentos (AFP u ONP e impuesto), horas extras, utilidades, remuneraciones pendientes ni lo que diga tu contrato o un convenio colectivo.");
     return { conceptos: conceptos, total: r2(suma), rc: r2(rc), asignacion: r2(af),
              servicio: anios + " año(s), " + mesesSueltos + " mes(es) y " + total.dias + " día(s)", notas: notas };
+  }
+
+  // ---------- costo laboral anual del empleador (v1.2, 24/09/2026) ----------
+  /* Lo que la empresa paga en un año por un trabajador a jornada completa con remuneración fija, según el régimen.
+     Bases verificadas el 24/09/2026:
+     - Gratificaciones: Ley 27735, art. 5 (dos al año); pequeña empresa, media remuneración cada una (TUO D.S. 013-2013-PRODUCE, art. 50).
+     - Bonificación extraordinaria: el aporte a EsSalud sobre la gratificación (Ley 30334, art. 3): 9 %, o 6.75 % con EPS.
+     - CTS: por semestre, 1/12 de la remuneración computable por mes, que incluye 1/6 de la gratificación del semestre
+       (D.S. 001-97-TR, arts. 18 y 21). Al año: rc × (1 + 1/6). Pequeña empresa: 15 remuneraciones diarias por año (TUO, art. 50).
+     - EsSalud: 9 % de la remuneración, con base mínima de la RMV (Ley 26790, art. 6, literal a). No se aplica a la
+       gratificación ni a la CTS (Ley 30334, art. 1; D.S. 001-97-TR).
+     - Microempresa: sin CTS ni gratificaciones. SIS microempresas: S/ 15 mensuales por trabajador (TUO, art. 64.2; gob.pe/SIS).
+     - Vida Ley desde el primer día (D. Leg. 688, art. 1, modificado por el D.U. 044-2019) y SCTR en actividades de riesgo
+       (Ley 26790, art. 19): la prima la fija la aseguradora; se suma solo si se ingresa su tasa.
+     - Las vacaciones se pagan dentro de las 12 remuneraciones: no son un costo adicional salvo que se cubra al trabajador.
+     No incluye utilidades, horas extras, movilidad ni otros conceptos variables. */
+  var SIS_MICRO = 15;
+  function costoLaboral(d) {
+    var sueldo = +d.sueldo || 0;
+    if (sueldo <= 0) return { error: "Ingresa la remuneración mensual del puesto." };
+    var reg = d.regimen || "general", notas = [], filas = [];
+    if (sueldo < RMV) return { error: "La remuneración no puede ser menor que la mínima vital (S/ " + RMV.toFixed(2) + ") para una jornada completa (TUO D.S. N.º 013-2013-PRODUCE, art. 52; en el régimen general, la RMV vigente)." };
+    var af = d.asignacion ? ASIGNACION : 0, rc = sueldo + af;
+    var salud = d.salud || (reg === "micro" ? "sis" : "essalud");
+    if (reg !== "micro" && salud === "sis") salud = "essalud";
+    var tasaBonif = salud === "eps" ? 0.0675 : 0.09;
+    var remAnual = 12 * rc;
+    filas.push({ id: "rem", nombre: "12 remuneraciones", monto: r2(remAnual),
+                 detalle: soles(sueldo) + (af ? " + asignación familiar " + soles(af) + " (Ley N.º 25129)" : "") + " × 12. Incluyen el mes de vacaciones (" + (reg === "general" ? "30" : "15") + " días; " + (reg === "general" ? "D. Leg. N.º 713" : "TUO D.S. N.º 013-2013-PRODUCE, art. 55") + ")." });
+    var grat = 0, bonif = 0, cts = 0;
+    if (reg === "general") {
+      grat = 2 * rc;
+      cts = rc * (1 + 1 / 6);
+      filas.push({ id: "grat", nombre: "Gratificaciones de julio y diciembre", monto: r2(grat), detalle: "Una remuneración cada una (Ley N.º 27735, art. 5)." });
+    } else if (reg === "pequena") {
+      grat = rc;
+      cts = 0.5 * (rc + (rc / 2) / 6);
+      filas.push({ id: "grat", nombre: "Gratificaciones de julio y diciembre", monto: r2(grat), detalle: "Media remuneración cada una (TUO D.S. N.º 013-2013-PRODUCE, art. 50)." });
+    } else {
+      filas.push({ id: "grat", nombre: "Gratificaciones", monto: 0, detalle: "La microempresa no paga gratificaciones ni CTS (TUO D.S. N.º 013-2013-PRODUCE, art. 50)." });
+    }
+    if (grat) {
+      bonif = grat * tasaBonif;
+      filas.push({ id: "bonif", nombre: "Bonificación extraordinaria (" + (salud === "eps" ? "6.75 %" : "9 %") + ")", monto: r2(bonif),
+                   detalle: "El aporte a EsSalud sobre la gratificación, pagado al trabajador (Ley N.º 30334, art. 3)." });
+      filas.push({ id: "cts", nombre: "CTS (depósitos de mayo y noviembre)", monto: r2(cts),
+                   detalle: reg === "general" ? "Una remuneración computable al año, con 1/6 de la gratificación (D.S. N.º 001-97-TR, arts. 18 y 21)."
+                                              : "15 remuneraciones diarias al año, con 1/6 de la gratificación (TUO D.S. N.º 013-2013-PRODUCE, art. 50; D.S. N.º 001-97-TR)." });
+    }
+    var saludMonto, saludDet;
+    if (salud === "sis") {
+      saludMonto = 12 * SIS_MICRO;
+      saludDet = "SIS microempresas: S/ 15.00 al mes por trabajador (TUO D.S. N.º 013-2013-PRODUCE, art. 64.2). Si el trabajador está en EsSalud, elige esa opción.";
+    } else {
+      var base = Math.max(rc, RMV);
+      saludMonto = 12 * 0.09 * base;
+      saludDet = "9 % de " + soles(base) + " al mes; la base no puede ser menor que la RMV (Ley N.º 26790, art. 6). La gratificación y la CTS no pagan EsSalud (Ley N.º 30334, art. 1)" +
+                 (salud === "eps" ? ". Con EPS el total sigue siendo 9 %: 6.75 % a EsSalud y 2.25 % como crédito para la EPS; el plan de la EPS puede costar más" : "") + ".";
+    }
+    filas.push({ id: "salud", nombre: salud === "sis" ? "Seguro de salud (SIS microempresas)" : "EsSalud (9 %)", monto: r2(saludMonto), detalle: saludDet });
+    var vida = 0, sctr = 0;
+    var tVida = +d.tasaVida || 0, tSctr = +d.tasaSctr || 0;
+    if (tVida > 0) {
+      vida = 12 * rc * tVida / 100;
+      filas.push({ id: "vida", nombre: "Seguro Vida Ley (" + tVida + " % según póliza)", monto: r2(vida), detalle: "Obligatorio desde el primer día de trabajo (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019)." });
+    } else if (reg === "micro") {
+      notas.push("En la microempresa, el seguro de vida no figura entre los derechos del régimen especial: el TUO D.S. N.º 013-2013-PRODUCE, art. 50, lo reconoce solo a la pequeña empresa. Si la empresa lo contrata, ingresa su prima para sumarla.");
+    } else {
+      notas.push("Falta el Seguro Vida Ley: es obligatorio desde el primer día (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019" + (reg === "pequena" ? "; TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + "). Su prima la fija la aseguradora: ingrésala para sumarla.");
+    }
+    if (tSctr > 0) {
+      sctr = 12 * rc * tSctr / 100;
+      filas.push({ id: "sctr", nombre: "SCTR (" + tSctr + " % según póliza)", monto: r2(sctr), detalle: "Solo en actividades de riesgo (Ley N.º 26790, art. 19)." });
+    }
+    var total = 0;
+    filas.forEach(function (f) { total += f.monto; });
+    total = r2(total);
+    notas.push("No incluye utilidades (empresas de más de 20 trabajadores), horas extras, movilidad, bonos, ni lo que diga un convenio colectivo. Los aportes a la AFP o a la ONP los paga el trabajador: se descuentan de su remuneración y no son un costo adicional para la empresa.");
+    if (reg !== "general") notas.push("El régimen MYPE solo se aplica si la empresa está inscrita en el REMYPE. La Ley N.º 32353 mantiene estos mismos montos (arts. 44, 49 y 50) y rige al día siguiente de publicado su reglamento.");
+    if (reg === "general" && d.asignacion === false) notas.push("Si el trabajador tiene hijos menores de 18 años, o mayores que siguen estudios superiores (hasta seis años después de cumplir 18), le corresponde asignación familiar: marca la casilla para sumarla (Ley N.º 25129; D.S. N.º 035-90-TR, art. 6).");
+    return { filas: filas, total: total, mensual: r2(total / 12), sobre: r2(total / remAnual * 100), rc: r2(rc), regimen: reg, notas: notas };
   }
 
   function fmtFecha(f) {
@@ -286,10 +369,49 @@
     visibles();
   }
 
+  function iniciarCosto() {
+    var form = document.getElementById("form-costo");
+    if (!form) return;
+    var salida = document.getElementById("costo-salida");
+    function visibles() {
+      var reg = form.elements.regimen.value;
+      form.querySelectorAll(".solo-micro").forEach(function (el) { el.hidden = reg !== "micro"; });
+      form.querySelectorAll(".no-micro").forEach(function (el) { el.hidden = reg === "micro"; });
+    }
+    form.addEventListener("change", visibles);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var reg = form.elements.regimen.value;
+      var r = costoLaboral({
+        regimen: reg, sueldo: form.elements.sueldo.value, asignacion: form.elements.asignacion.checked,
+        salud: reg === "micro" ? form.elements.saludMicro.value : (form.elements.eps.checked ? "eps" : "essalud"),
+        tasaVida: form.elements.tasaVida.value, tasaSctr: form.elements.tasaSctr.value
+      });
+      if (r.error) { salida.innerHTML = '<p class="aviso aviso-error" role="alert">' + r.error + "</p>"; return; }
+      var filas = r.filas.map(function (f) {
+        return "<tr><td><strong>" + f.nombre + "</strong><br><span class=\"calc-nota\">" + f.detalle + "</span></td><td class=\"num\">" + soles(f.monto) + "</td></tr>";
+      }).join("");
+      salida.innerHTML =
+        '<span class="kicker">Costo laboral anual estimado</span>' +
+        '<p class="total">' + soles(r.total) + "</p>" +
+        '<p class="calc-nota">En promedio, ' + soles(r.mensual) + " al mes: " + r.sobre.toFixed(1) + " % de las 12 remuneraciones.</p>" +
+        '<div class="tabla-scroll"><table class="tabla-guia"><thead><tr><th>Concepto al año</th><th class="num">Monto</th></tr></thead><tbody>' +
+        filas + "</tbody></table></div>" +
+        r.notas.map(function (t) { return '<p class="calc-nota">' + t + "</p>"; }).join("") +
+        '<p><a class="boton boton-primario" href="/empresas.html#linea-02">Revisar la estructura salarial con HRTIC</a></p>';
+      salida.focus();
+      if (window.goatcounter && window.goatcounter.count) {
+        window.goatcounter.count({ path: "calculo-costo-laboral-" + reg, title: "Cálculo de costo laboral", event: true });
+      }
+    });
+    visibles();
+  }
+
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { calcular: calcular, tiempo: tiempo, mesesCalendario: mesesCalendario };
+    module.exports = { calcular: calcular, costoLaboral: costoLaboral, tiempo: tiempo, mesesCalendario: mesesCalendario };
   } else {
-    window.HRTICcalc = { calcular: calcular };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar); else iniciar();
+    window.HRTICcalc = { calcular: calcular, costoLaboral: costoLaboral };
+    var arrancar = function () { iniciar(); iniciarCosto(); };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arrancar); else arrancar();
   }
 })();
