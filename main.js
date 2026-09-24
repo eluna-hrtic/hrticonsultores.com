@@ -289,12 +289,30 @@
     var mostrar = porPagina, filtro = "";
     var botonMas = document.getElementById("criterio-mas");
     var tarjetas = Array.prototype.slice.call(rejilla.querySelectorAll(".entrega"));
+    // v1.11: buscador en el navegador, sin tildes ni mayúsculas, combinado con el filtro por tema.
+    var plano = function (x) { return (x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
+    var textos = tarjetas.map(function (t) { return plano(t.textContent); });
+    var caja = document.getElementById("criterio-buscar"), q = document.getElementById("criterio-q");
+    var conteo = document.getElementById("criterio-conteo"), vacio = document.getElementById("criterio-vacio"), busca = "";
     var pintar = function () {
-      var visibles = tarjetas.filter(function (t) { return !filtro || t.getAttribute("data-categoria") === filtro; });
+      var palabras = busca.split(/\s+/).filter(Boolean);
+      var visibles = tarjetas.filter(function (t, i) {
+        return (!filtro || t.getAttribute("data-categoria") === filtro) && palabras.every(function (p) { return textos[i].indexOf(p) !== -1; });
+      });
       tarjetas.forEach(function (t) { t.hidden = true; });
       visibles.forEach(function (t, i) { t.hidden = i >= mostrar; });
       if (botonMas) botonMas.hidden = visibles.length <= mostrar;
+      if (conteo) conteo.textContent = palabras.length ? visibles.length + (visibles.length === 1 ? " entrega" : " entregas") : "";
+      if (vacio) vacio.hidden = visibles.length > 0;
     };
+    if (caja && q) {
+      caja.hidden = false;
+      var espera, contado = false;
+      q.addEventListener("input", function () {
+        clearTimeout(espera);
+        espera = setTimeout(function () { busca = plano(q.value.trim()); mostrar = porPagina; pintar(); if (busca && !contado) { contado = true; evento("criterio-busqueda", "Búsqueda en Criterio"); } }, 180);
+      });
+    }
     document.querySelectorAll(".filtro").forEach(function (b) {
       b.addEventListener("click", function () {
         filtro = b.getAttribute("data-filtro"); mostrar = porPagina;

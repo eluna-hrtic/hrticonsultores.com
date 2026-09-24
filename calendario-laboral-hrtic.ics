@@ -1,0 +1,233 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//HRTIC//Calendario laboral//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Calendario laboral HRTIC
+X-WR-TIMEZONE:America/Lima
+BEGIN:VEVENT
+UID:cts-banco-2026-10@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20261030
+DTEND;VALUE=DATE:20261031
+SUMMARY:Elección del banco de CTS de quien ingresó en el semestre
+DESCRIPTION:El plazo vence el sábado 31/10/2026. El trabajador que ingres
+ ó comunica por escrito y bajo cargo el banco\, el tipo de cuenta y la mon
+ eda de su CTS. Si no lo hace\, el empleador deposita a plazo fijo en cualq
+ uier entidad permitida.\nBase legal: D.S. N.º 001-97-TR\, TUO de la Ley d
+ e CTS (El Peruano\, 01/03/1997)\, art. 23\nhttps://hrticonsultores.com/cal
+ endario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Elección del banco de CTS de quien ingresó en el semestre
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-2026-11@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20261116
+DTEND;VALUE=DATE:20261117
+SUMMARY:Vence el depósito de CTS de noviembre
+DESCRIPTION:El plazo son los primeros 15 días naturales de noviembre. El 1
+ 5/11/2026 es domingo\, así que el depósito puede hacerse hasta el lunes 
+ 16/11/2026. Se calcula con la remuneración computable de octubre.\nBase l
+ egal: D.S. N.º 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01/03/1997)
+ \, arts. 21 y 22\nhttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Vence el depósito de CTS de noviembre
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-hoja-2026-11@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20261123
+DTEND;VALUE=DATE:20261124
+SUMMARY:Entrega de la hoja de liquidación de la CTS
+DESCRIPTION:Dentro de los 5 días hábiles de efectuado el depósito\, firm
+ ada y bajo cargo. Si depositaste el 16/11/2026\, vence el lunes 23/11/2026
+ .\nBase legal: D.S. N.º 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01
+ /03/1997)\, art. 29\nhttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Entrega de la hoja de liquidación de la CTS
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:grati-2026-12@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20261215
+DTEND;VALUE=DATE:20261216
+SUMMARY:Vence el pago de la gratificación de Navidad
+DESCRIPTION:Se paga en la primera quincena de diciembre\, junto con la boni
+ ficación extraordinaria equivalente al aporte a EsSalud sobre la gratific
+ ación.\nBase legal: Ley N.º 27735 (El Peruano\, 28/05/2002)\, art. 5\; b
+ onificación extraordinaria: Ley N.º 30334 (El Peruano\, 24/06/2015)\, ar
+ t. 3\nhttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Vence el pago de la gratificación de Navidad
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-banco-2027-04@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20270430
+DTEND;VALUE=DATE:20270501
+SUMMARY:Elección del banco de CTS de quien ingresó en el semestre
+DESCRIPTION:El plazo vence el viernes 30/04/2027. El trabajador que ingres
+ ó comunica por escrito y bajo cargo el banco\, el tipo de cuenta y la mon
+ eda de su CTS.\nBase legal: D.S. N.º 001-97-TR\, TUO de la Ley de CTS (El
+  Peruano\, 01/03/1997)\, art. 23\nhttps://hrticonsultores.com/calendario-l
+ aboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Elección del banco de CTS de quien ingresó en el semestre
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-2027-05@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20270517
+DTEND;VALUE=DATE:20270518
+SUMMARY:Vence el depósito de CTS de mayo
+DESCRIPTION:El plazo son los primeros 15 días naturales de mayo. El 15/05/
+ 2027 es sábado\, así que el depósito puede hacerse hasta el lunes 17/05
+ /2027. Se calcula con la remuneración computable de abril.\nBase legal: D
+ .S. N.º 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01/03/1997)\, arts
+ . 21 y 22\nhttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Vence el depósito de CTS de mayo
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-hoja-2027-05@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20270524
+DTEND;VALUE=DATE:20270525
+SUMMARY:Entrega de la hoja de liquidación de la CTS
+DESCRIPTION:Dentro de los 5 días hábiles de efectuado el depósito. Si de
+ positaste el 17/05/2027\, vence el lunes 24/05/2027.\nBase legal: D.S. N.
+ º 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01/03/1997)\, art. 29\nh
+ ttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Entrega de la hoja de liquidación de la CTS
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:grati-2027-07@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20270715
+DTEND;VALUE=DATE:20270716
+SUMMARY:Vence el pago de la gratificación de Fiestas Patrias
+DESCRIPTION:Se paga en la primera quincena de julio\, junto con la bonifica
+ ción extraordinaria equivalente al aporte a EsSalud sobre la gratificaci
+ ón.\nBase legal: Ley N.º 27735 (El Peruano\, 28/05/2002)\, art. 5\; boni
+ ficación extraordinaria: Ley N.º 30334 (El Peruano\, 24/06/2015)\, art. 
+ 3\nhttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Vence el pago de la gratificación de Fiestas Patrias
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-banco-2027-10@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20271029
+DTEND;VALUE=DATE:20271030
+SUMMARY:Elección del banco de CTS de quien ingresó en el semestre
+DESCRIPTION:El plazo vence el domingo 31/10/2027: conviene tener la comunic
+ ación firmada este viernes. El trabajador indica por escrito y bajo cargo
+  el banco\, el tipo de cuenta y la moneda.\nBase legal: D.S. N.º 001-97-T
+ R\, TUO de la Ley de CTS (El Peruano\, 01/03/1997)\, art. 23\nhttps://hrti
+ consultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Elección del banco de CTS de quien ingresó en el semestre
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-2027-11@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20271115
+DTEND;VALUE=DATE:20271116
+SUMMARY:Vence el depósito de CTS de noviembre
+DESCRIPTION:El plazo son los primeros 15 días naturales de noviembre. Se c
+ alcula con la remuneración computable de octubre.\nBase legal: D.S. N.º 
+ 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01/03/1997)\, arts. 21 y 22
+ \nhttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Vence el depósito de CTS de noviembre
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cts-hoja-2027-11@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20271122
+DTEND;VALUE=DATE:20271123
+SUMMARY:Entrega de la hoja de liquidación de la CTS
+DESCRIPTION:Dentro de los 5 días hábiles de efectuado el depósito. Si de
+ positaste el 15/11/2027\, vence el lunes 22/11/2027.\nBase legal: D.S. N.
+ º 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01/03/1997)\, art. 29\nh
+ ttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Entrega de la hoja de liquidación de la CTS
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:grati-2027-12@hrticonsultores.com
+DTSTAMP:20260924T170000Z
+DTSTART;VALUE=DATE:20271215
+DTEND;VALUE=DATE:20271216
+SUMMARY:Vence el pago de la gratificación de Navidad
+DESCRIPTION:Se paga en la primera quincena de diciembre\, junto con la boni
+ ficación extraordinaria equivalente al aporte a EsSalud sobre la gratific
+ ación.\nBase legal: Ley N.º 27735 (El Peruano\, 28/05/2002)\, art. 5\; b
+ onificación extraordinaria: Ley N.º 30334 (El Peruano\, 24/06/2015)\, ar
+ t. 3\nhttps://hrticonsultores.com/calendario-laboral.html
+URL:https://hrticonsultores.com/calendario-laboral.html
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P3D
+DESCRIPTION:Vence el pago de la gratificación de Navidad
+END:VALARM
+END:VEVENT
+END:VCALENDAR
