@@ -1,5 +1,6 @@
 /* HRTIC · calculadora de beneficios sociales · v1.3 · 24/09/2026 (indemnización MYPE solo por dozavos; costo laboral del empleador;
-   v1.3: tope de 90 remuneraciones diarias de la CTS de la pequeña empresa y textos por régimen en el costo laboral)
+   v1.3: tope de 90 remuneraciones diarias de la CTS de la pequeña empresa y textos por régimen en el costo laboral;
+   v1.3.1: el Seguro Vida Ley es obligatorio también en la microempresa, D.S. 009-2020-TR, art. 2)
    Cálculo orientativo de la liquidación al cese. Normas: D.S. 001-97-TR (CTS), Ley 27735 y D.S. 005-2002-TR
    (gratificaciones), Ley 30334 (bonificación extraordinaria), D. Leg. 713 y D.S. 012-92-TR (vacaciones),
    D.S. 003-97-TR, arts. 10, 38 y 76 (indemnización), TUO D.S. 013-2013-PRODUCE (micro y pequeña empresa).
@@ -56,7 +57,7 @@
     var sueldo = +d.sueldo || 0, variables = +d.variables || 0;
     if (sueldo <= 0) return { error: "Ingresa tu remuneración mensual." };
     var reg = d.regimen || "general", mype = reg !== "general";
-    var af = d.asignacion ? ASIGNACION : 0;          // en la MYPE no es obligatoria: se suma solo si la pagan
+    var af = d.asignacion ? ASIGNACION : 0;          // el TUO MYPE no la incluye (art. 50): se suma solo si la pagan
     var rc = sueldo + af + variables;               // remuneración computable mensual
     var factor = reg === "pequena" ? 0.5 : 1;       // pequeña empresa: la mitad (15 días de CTS, media gratificación)
     var tasaBonif = d.eps ? 0.0675 : 0.09;
@@ -68,7 +69,7 @@
       notas.push("Con una jornada menor de 4 horas diarias en promedio no corresponde la CTS (D.S. N.º 001-97-TR, art. 4) y la protección contra el despido arbitrario tiene reglas propias. Te conviene revisar tu caso en una consulta.");
     }
     if (mype && d.asignacion) {
-      notas.push("En la micro y pequeña empresa la asignación familiar no es obligatoria. La calculadora la suma porque indicas que la recibes: si se paga, forma parte de tu remuneración.");
+      notas.push("El TUO D.S. N.º 013-2013-PRODUCE no incluye la asignación familiar entre los derechos del régimen MYPE (art. 50). La calculadora la suma porque indicas que la recibes: si se paga, forma parte de tu remuneración.");
     }
     if (!d.menosDe4h && sueldo < RMV) {
       notas.push("Tu remuneración es menor que la mínima vital (S/ " + RMV.toFixed(2) + "). Si trabajas jornada completa, tu empleador debe pagarte al menos ese monto.");
@@ -256,7 +257,8 @@
      - EsSalud: 9 % de la remuneración, con base mínima de la RMV (Ley 26790, art. 6, literal a). No se aplica a la
        gratificación ni a la CTS (Ley 30334, art. 1; D.S. 001-97-TR).
      - Microempresa: sin CTS ni gratificaciones. SIS microempresas: S/ 15 mensuales por trabajador (TUO, art. 64.2; gob.pe/SIS).
-     - Vida Ley desde el primer día (D. Leg. 688, art. 1, modificado por el D.U. 044-2019) y SCTR en actividades de riesgo
+     - Vida Ley desde el primer día para todo trabajador del sector privado, cualquiera sea su régimen, también la MYPE (D. Leg. 688,
+       art. 1, modificado por el D.U. 044-2019; D.S. 009-2020-TR, art. 2; corregido el 24/09/2026) y SCTR en actividades de riesgo
        (Ley 26790, art. 19): la prima la fija la aseguradora; se suma solo si se ingresa su tasa.
      - Las vacaciones se pagan dentro de las 12 remuneraciones: no son un costo adicional salvo que se cubra al trabajador.
      No incluye utilidades, horas extras, movilidad ni otros conceptos variables. */
@@ -309,17 +311,14 @@
     if (tVida > 0) {
       vida = 12 * rc * tVida / 100;
       filas.push({ id: "vida", nombre: "Seguro Vida Ley (" + tVida + " % según póliza)", monto: r2(vida),
-                   detalle: reg === "micro" ? "Contratado por la empresa: en la microempresa no figura entre los derechos del régimen especial (TUO D.S. N.º 013-2013-PRODUCE, art. 50)."
-                                            : "Obligatorio desde el primer día de trabajo (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019" + (reg === "pequena" ? "; TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." });
-    } else if (reg === "micro") {
-      notas.push("En la microempresa, el seguro de vida no figura entre los derechos del régimen especial: el TUO D.S. N.º 013-2013-PRODUCE, art. 50, lo reconoce solo a la pequeña empresa. Si la empresa lo contrata, ingresa su prima para sumarla.");
+                   detalle: "Obligatorio desde el primer día para todo trabajador del sector privado, cualquiera sea su régimen laboral (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019; D.S. N.º 009-2020-TR, art. 2" + (reg === "pequena" ? "; para la pequeña empresa lo reitera el TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." });
     } else {
-      notas.push("Falta el Seguro Vida Ley: es obligatorio desde el primer día (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019" + (reg === "pequena" ? "; TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + "). Su prima la fija la aseguradora: ingrésala para sumarla.");
+      notas.push("Falta el Seguro Vida Ley: es obligatorio desde el primer día para todo trabajador del sector privado, cualquiera sea su régimen laboral, también en la micro y pequeña empresa (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019; D.S. N.º 009-2020-TR, art. 2). Su prima la fija la aseguradora: ingrésala para sumarla.");
     }
     if (tSctr > 0) {
       sctr = 12 * rc * tSctr / 100;
       filas.push({ id: "sctr", nombre: "SCTR (" + tSctr + " % según póliza)", monto: r2(sctr),
-                   detalle: "Solo en actividades de riesgo (Ley N.º 26790, art. 19" + (reg === "pequena" ? "; en la pequeña empresa, «cuando corresponda», TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." });
+                   detalle: "Solo en actividades de riesgo (Ley N.º 26790, art. 19" + (reg === "pequena" ? "; en la pequeña empresa, «cuando corresponda», TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." + (reg === "micro" ? " El TUO MYPE no lo menciona para la microempresa ni la excluye: si la actividad es de riesgo, revisa tu caso." : "") });
     }
     var total = 0;
     filas.forEach(function (f) { total += f.monto; });
