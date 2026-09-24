@@ -557,11 +557,25 @@ picture > source { display: none; }
 .filtro[aria-pressed="true"] span { color: #D6D3D8; }
 .criterio-rejilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
 .criterio-rejilla > [hidden] { display: none !important; }
-.entrega a { display: flex; flex-direction: column; height: 100%; background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); overflow: hidden; text-decoration: none; color: var(--grafito); transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
-.entrega a:hover { border-color: var(--cian); transform: translateY(-2px); box-shadow: var(--sombra); color: var(--grafito); }
+/* La tarjeta es el <article>: dentro van el enlace a la entrega y, al pie, el enlace al autor (24/09/2026). */
+.entrega { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); overflow: hidden; transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
+.entrega:hover { border-color: var(--cian); transform: translateY(-2px); box-shadow: var(--sombra); }
+.entrega-enlace { display: flex; flex-direction: column; flex: 1; text-decoration: none; color: var(--grafito); }
+.entrega-enlace:hover { color: var(--grafito); }
+.entrega-enlace:focus-visible { outline-offset: -3px; border-radius: var(--radio) var(--radio) 0 0; }
+/* Línea de autor: nombre (--texto-2, 7.5:1) y cargo (--texto-3, 5.5:1) sobre blanco. Si el cargo no cabe, baja a otra línea
+   y el «·» queda recortado fuera del enlace (margen negativo + overflow), para que ninguna línea termine o empiece con él. */
+.entrega-autor { margin: 0 22px; padding: 12px 0 16px; border-top: 1px solid var(--borde); font-size: .8rem; line-height: 1.45; }
+.entrega-autor a { display: block; width: fit-content; max-width: 100%; overflow: hidden; text-decoration: none; color: var(--texto-3); }
+.entrega-autor-linea { display: flex; flex-wrap: wrap; margin-left: -1.1em; }
+.entrega-autor-linea > span { margin-left: 1.1em; }
+.entrega-autor-nombre { font-weight: 600; color: var(--texto-2); }
+.entrega-autor-cargo { position: relative; }
+.entrega-autor-sep { position: absolute; top: 0; right: 100%; width: 1.1em; text-align: center; }
+.entrega-autor a:hover .entrega-autor-nombre { color: var(--cian-texto); text-decoration: underline; }
 .entrega-foto { background: var(--cian-suave); aspect-ratio: 4 / 3; overflow: hidden; }
 .entrega-foto img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
-.entrega-texto { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px 22px; flex: 1; }
+.entrega-texto { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px 18px; flex: 1; }
 .entrega-texto h3 { font-size: 1.05rem; line-height: 1.3; margin: 0; }
 .entrega-texto p:not(.entrega-meta) { margin: 0; color: var(--texto-2); font-size: .9rem; }
 .entrega-texto .ir { margin-top: auto; padding-top: 4px; }
@@ -570,7 +584,7 @@ picture > source { display: none; }
 .intro-fila { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 36px; }
 .intro-fila .intro { margin-bottom: 0; }
 @media (max-width: 1000px) { .criterio-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); } .criterio-rejilla-tres > :nth-child(3) { display: none; } }
-@media (max-width: 640px) { .criterio-rejilla { grid-template-columns: 1fr; } .criterio-rejilla-tres > :nth-child(3) { display: block; } }
+@media (max-width: 640px) { .criterio-rejilla { grid-template-columns: 1fr; } .criterio-rejilla-tres > :nth-child(3) { display: flex; } }
 /* Página de cada entrega */
 .entrega-cabeza { max-width: 820px; margin-bottom: 34px; }
 .entrega-cabeza h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); margin: 12px 0 14px; }
@@ -621,3 +635,64 @@ picture > source { display: none; }
 .semaforo { list-style: none; padding: 0 !important; margin: 0 0 1.2em; display: grid; gap: 10px; }
 .semaforo li { display: flex; align-items: baseline; gap: 0; font-size: 1.02rem; line-height: 1.6; margin: 0 !important; }
 .semaforo .sem { transform: translateY(1px); }
+/* Ficha de autor (24/09/2026): foto de Nosotros, cargo, trayectoria, LinkedIn y lista de entregas */
+.autor-ficha { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 56px; align-items: start; }
+.autor-retrato { max-width: 340px; }
+.autor-texto { max-width: 680px; }
+.autor-texto h1 { font-size: clamp(2rem, 4.2vw, 3rem); margin: 0 0 8px; }
+.autor-cargo { font-weight: 600; font-size: 1.05rem; margin: 0 0 26px; }
+.autor-subtitulo { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-3); font-weight: 600; margin: 0 0 10px; }
+.autor-texto > p { color: var(--texto-2); font-size: 1.05rem; }
+.autor-texto .cita-corta { margin: 6px 0 0; }
+.autor-enlaces { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.autor-ir { margin: 22px 0 0; font-size: .92rem; font-weight: 600; }
+.autor-mes { display: flex; align-items: baseline; gap: 10px; font-size: 1rem; margin: 0 0 12px; }
+.autor-mes span { font-size: .82rem; font-weight: 500; color: var(--texto-3); }
+.autor-entregas + .autor-mes { margin-top: 32px; }
+.autor-entregas { list-style: none; margin: 0; padding: 0; background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); overflow: hidden; }
+.autor-entregas li + li { border-top: 1px solid var(--borde); }
+.autor-entregas a { display: grid; grid-template-columns: 92px 200px minmax(0, 1fr); gap: 4px 20px; align-items: baseline; padding: 14px 22px; text-decoration: none; color: var(--grafito); }
+.autor-entregas a:hover { background: var(--fondo-2); color: var(--grafito); }
+.autor-entregas a:hover .autor-entregas-titulo { color: var(--cian-texto); text-decoration: underline; }
+.autor-entregas a:focus-visible { outline-offset: -3px; }
+.autor-entregas time { font-size: .86rem; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+.autor-entregas-cat { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--cian-texto); }
+.autor-entregas-titulo { font-weight: 600; line-height: 1.4; }
+@media (max-width: 880px) { .autor-ficha { grid-template-columns: 1fr; gap: 28px; } .autor-retrato { max-width: 220px; } }
+@media (max-width: 720px) { .autor-entregas a { grid-template-columns: auto minmax(0, 1fr); padding: 14px 18px; } .autor-entregas-titulo { grid-column: 1 / -1; } }
+
+/* ---------- Boletín de Criterio HRTIC: formulario de suscripción (24/09/2026) ----------
+   Para fusionar al final de styles.css (construir.py solo incrusta styles.css). Usa los tokens y las clases de formularios
+   que ya existen (.formulario, .fila, .campo, .opciones, .consentimiento, .aviso). */
+
+/* Bloque de la sección Criterio HRTIC */
+.suscripcion {
+  display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(24px, 4vw, 48px); align-items: start;
+  background: #fff; border: 1px solid var(--borde); border-top: 4px solid var(--cian); border-radius: var(--radio);
+  padding: clamp(24px, 4vw, 44px); box-shadow: var(--sombra);
+}
+.suscripcion-texto h2 { margin-bottom: 10px; }
+.suscripcion-texto p { color: var(--texto-2); margin: 0; }
+.suscripcion-puntos { list-style: none; display: grid; gap: 8px; margin-top: 18px; font-size: .92rem; color: var(--texto-2); }
+.suscripcion-puntos li { position: relative; padding-left: 22px; }
+.suscripcion-puntos li::before {
+  content: ""; position: absolute; left: 1px; top: .6em; width: 9px; height: 9px; border-radius: 2px;
+  background: var(--cian); transform: rotate(45deg);
+}
+@media (max-width: 880px) { .suscripcion { grid-template-columns: 1fr; } }
+
+/* Banda del pie de página */
+.pie-suscripcion {
+  display: grid; grid-template-columns: .8fr 1.7fr; gap: 20px 40px; align-items: start;
+  padding-bottom: 36px; margin-bottom: 40px; border-bottom: 1px solid var(--borde);
+}
+.pie-suscripcion-texto p { margin: 0; }
+.form-suscripcion-pie { gap: 14px; }
+.form-suscripcion-pie .fila-tres { grid-template-columns: 1.2fr 1fr auto; gap: 14px; align-items: end; }
+.form-suscripcion-pie .campo input { padding: 10px 12px; }
+.form-suscripcion-pie fieldset.campo { padding: 8px 14px 10px; }
+.form-suscripcion-pie .consentimiento { font-size: .82rem; }
+/* En el pie los enlaces van sin subrayado: el de la política debe distinguirse del texto */
+.pie .consentimiento a { color: var(--cian-texto); text-decoration: underline; }
+@media (max-width: 1080px) { .pie-suscripcion { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .form-suscripcion-pie .fila-tres { grid-template-columns: 1fr; } }

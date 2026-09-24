@@ -318,6 +318,31 @@
     if (a) evento("criterio-compartir-" + (/linkedin/.test(a.href) ? "linkedin" : "whatsapp"), "Compartir entrega");
   });
 
+  // Boletín de Criterio HRTIC (24/09/2026): suscripción con doble confirmación por correo.
+  // FRAGMENTO para main.js: pegar DENTRO de la función principal, justo antes de «// Libro de Reclamaciones».
+  // Usa enviar(), aviso() y evento() de main.js, igual que los demás formularios. Suelto (fuera de main.js) no hace nada.
+  // Mide en GoatCounter «envio-suscripcion-criterio» y «envio-suscripcion-pie», con el mismo patrón que «envio-contacto».
+  (function () {
+    if (typeof enviar !== "function" || typeof aviso !== "function" || typeof evento !== "function") return;
+    document.querySelectorAll("form.form-suscripcion").forEach(function (fs) {
+      var ubicacion = fs.getAttribute("data-ubicacion") === "criterio" ? "criterio" : "pie";
+      enviar(fs, function (res, local) {
+        if (local) { aviso(fs, "error", "La suscripción aún no está conectada. Escríbenos a eluna@hrticonsultores.com."); return; }
+        if (res && res.ok) {
+          evento("envio-suscripcion-" + ubicacion, "Suscripción al boletín (por confirmar)");
+          fs.reset();
+          aviso(fs, "ok", "Falta un paso: revisa tu correo y abre el enlace para confirmar tu suscripción. Hasta que lo abras no te enviaremos el boletín. " +
+            "Si no lo ves en unos minutos, revisa la carpeta de spam o correo no deseado. Si tu correo ya estaba suscrito, no necesitas hacer nada.");
+        } else if (res && res.error === "limite") aviso(fs, "error", "Recibimos varias solicitudes con este correo. Inténtalo más tarde o escríbenos a eluna@hrticonsultores.com.");
+        else if (res && res.error === "datos") aviso(fs, "error", "Revisa tu correo, elige tu perfil y marca la casilla de autorización.");
+        else aviso(fs, "error", "No se pudo enviar. Escríbenos a eluna@hrticonsultores.com.");
+      }, function (d) {
+        d.ubicacion = ubicacion; // bloque de Criterio o pie de página: se guarda en «Formulario en»
+        return d;
+      });
+    });
+  })();
+
   // Libro de Reclamaciones
   var fl = document.getElementById("form-libro");
   if (fl) enviar(fl, function (res, local) {
