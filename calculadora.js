@@ -1,4 +1,5 @@
-/* HRTIC · calculadora de beneficios sociales · v1.2 · 24/09/2026 (indemnización MYPE solo por dozavos; costo laboral del empleador)
+/* HRTIC · calculadora de beneficios sociales · v1.3 · 24/09/2026 (indemnización MYPE solo por dozavos; costo laboral del empleador;
+   v1.3: tope de 90 remuneraciones diarias de la CTS de la pequeña empresa y textos por régimen en el costo laboral)
    Cálculo orientativo de la liquidación al cese. Normas: D.S. 001-97-TR (CTS), Ley 27735 y D.S. 005-2002-TR
    (gratificaciones), Ley 30334 (bonificación extraordinaria), D. Leg. 713 y D.S. 012-92-TR (vacaciones),
    D.S. 003-97-TR, arts. 10, 38 y 76 (indemnización), TUO D.S. 013-2013-PRODUCE (micro y pequeña empresa).
@@ -100,6 +101,20 @@
       detCts = tCts.meses + " mes(es) y " + tCts.dias + " día(s) desde el " + fmtFecha(iniSem) +
                "; remuneración computable " + soles(rcCts) + (sexto ? " (incluye 1/6 de la gratificación)" : "") +
                (reg === "pequena" ? "; pequeña empresa: 15 remuneraciones diarias por año" : "");
+      if (reg === "pequena") {
+        // TUO D.S. 013-2013-PRODUCE, art. 50: 15 remuneraciones diarias por año completo de servicios, «hasta alcanzar un
+        // máximo de noventa (90) remuneraciones diarias», es decir, 6 años. Se asume todo el tiempo en el régimen (v1.3).
+        var previo = iniSem > ingreso ? tiempo(ingreso, masDias(iniSem, -1)) : { meses: 0, dias: 0 };
+        var diasPrevios = 15 * (previo.meses / 12 + previo.dias / 360);
+        var diasSem = 15 * (tCts.meses / 12 + tCts.dias / 360);
+        var disponibles = Math.max(0, 90 - diasPrevios);
+        if (diasSem > disponibles + 1e-9) {
+          cts = rcCts / 30 * disponibles;
+          detCts += disponibles > 0 ? "; solo " + (Math.round(disponibles * 100) / 100) + " remuneración(es) diaria(s) hasta el tope de 90"
+                                    : "; el tope de 90 remuneraciones diarias ya se alcanzó";
+          notas.push("En la pequeña empresa la CTS se computa a razón de 15 remuneraciones diarias por año, hasta un máximo de 90 (TUO D.S. N.º 013-2013-PRODUCE, art. 50): el tope se completa con 6 años de servicios. La calculadora asume que todo tu tiempo fue en el régimen de pequeña empresa; si la empresa se inscribió en el REMYPE después de tu ingreso, revisa tu caso en una consulta.");
+        }
+      }
       if ((cesM === 4 || cesM === 10) && cesD <= 15) {
         notas.push("Cesaste en la primera quincena de " + (cesM === 4 ? "mayo" : "noviembre") + ": revisa que tu empleador haya depositado la CTS del semestre anterior. La calculadora asume que sí.");
       }
@@ -293,7 +308,9 @@
     var tVida = +d.tasaVida || 0, tSctr = +d.tasaSctr || 0;
     if (tVida > 0) {
       vida = 12 * rc * tVida / 100;
-      filas.push({ id: "vida", nombre: "Seguro Vida Ley (" + tVida + " % según póliza)", monto: r2(vida), detalle: "Obligatorio desde el primer día de trabajo (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019)." });
+      filas.push({ id: "vida", nombre: "Seguro Vida Ley (" + tVida + " % según póliza)", monto: r2(vida),
+                   detalle: reg === "micro" ? "Contratado por la empresa: en la microempresa no figura entre los derechos del régimen especial (TUO D.S. N.º 013-2013-PRODUCE, art. 50)."
+                                            : "Obligatorio desde el primer día de trabajo (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019" + (reg === "pequena" ? "; TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." });
     } else if (reg === "micro") {
       notas.push("En la microempresa, el seguro de vida no figura entre los derechos del régimen especial: el TUO D.S. N.º 013-2013-PRODUCE, art. 50, lo reconoce solo a la pequeña empresa. Si la empresa lo contrata, ingresa su prima para sumarla.");
     } else {
@@ -301,12 +318,16 @@
     }
     if (tSctr > 0) {
       sctr = 12 * rc * tSctr / 100;
-      filas.push({ id: "sctr", nombre: "SCTR (" + tSctr + " % según póliza)", monto: r2(sctr), detalle: "Solo en actividades de riesgo (Ley N.º 26790, art. 19)." });
+      filas.push({ id: "sctr", nombre: "SCTR (" + tSctr + " % según póliza)", monto: r2(sctr),
+                   detalle: "Solo en actividades de riesgo (Ley N.º 26790, art. 19" + (reg === "pequena" ? "; en la pequeña empresa, «cuando corresponda», TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." });
     }
     var total = 0;
     filas.forEach(function (f) { total += f.monto; });
     total = r2(total);
-    notas.push("No incluye utilidades (empresas de más de 20 trabajadores), horas extras, movilidad, bonos, ni lo que diga un convenio colectivo. Los aportes a la AFP o a la ONP los paga el trabajador: se descuentan de su remuneración y no son un costo adicional para la empresa.");
+    if (reg === "pequena") notas.push("La CTS de la pequeña empresa tiene un tope de 90 remuneraciones diarias (TUO D.S. N.º 013-2013-PRODUCE, art. 50), que se completa con 6 años de servicios: desde entonces ya no suma al costo.");
+    notas.push((reg === "micro" ? "La microempresa no reparte utilidades (TUO D.S. N.º 013-2013-PRODUCE, art. 50). "
+               : "No incluye la participación en las utilidades, que corresponde si la empresa genera rentas de tercera categoría y tiene más de 20 trabajadores (D. Leg. N.º 892" + (reg === "pequena" ? "; en la pequeña empresa, TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + "). ") +
+               "Tampoco incluye horas extras, movilidad, bonos ni lo que diga un convenio colectivo. Los aportes a la AFP o a la ONP los paga el trabajador: se descuentan de su remuneración y no son un costo adicional para la empresa.");
     if (reg !== "general") notas.push("El régimen MYPE solo se aplica si la empresa está inscrita en el REMYPE. La Ley N.º 32353 mantiene estos mismos montos (arts. 44, 49 y 50) y rige al día siguiente de publicado su reglamento.");
     if (reg === "general" && d.asignacion === false) notas.push("Si el trabajador tiene hijos menores de 18 años, o mayores que siguen estudios superiores (hasta seis años después de cumplir 18), le corresponde asignación familiar: marca la casilla para sumarla (Ley N.º 25129; D.S. N.º 035-90-TR, art. 6).");
     return { filas: filas, total: total, mensual: r2(total / 12), sobre: r2(total / remAnual * 100), rc: r2(rc), regimen: reg, notas: notas };
