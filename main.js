@@ -1,4 +1,4 @@
-/* HRTIC · sitio web v1.4.2 · comportamiento mínimo, sin dependencias (postulación en línea desde la v1.4.2) */
+/* HRTIC · sitio web v1.18 · comportamiento mínimo, sin dependencias (movimiento con prefers-reduced-motion desde el 30/09/2026) */
 (function () {
   "use strict";
 
@@ -27,6 +27,58 @@
     }, { rootMargin: "200px" });
     io.observe(v);
   });
+
+
+  // v1.18 (30/09/2026): movimiento. Aparición al bajar solo para lo que está fuera de la primera pantalla (sin parpadeo ni
+  // saltos de diseño) y manifiesto que se ilumina palabra por palabra. Con «reducir movimiento» todo queda quieto y visible.
+  if (!quieto && "IntersectionObserver" in window) {
+    var sel = ".seccion .intro, .seccion .tarjeta, .pasos li, .puerta, .galeria li, .criterio-ultima, .franja, .manifiesto-cuerpo p, .fundador, .convocatoria, .calendario-lista li, .entrega";
+    var alto = window.innerHeight;
+    var obs = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("visible"); obs.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    document.querySelectorAll(sel).forEach(function (el) {
+      if (el.closest(".portada") || el.closest(".calc") || el.classList.contains("aparece")) return;
+      if (el.getBoundingClientRect().top < alto * 0.92) return;
+      var i = Array.prototype.indexOf.call(el.parentElement.children, el);
+      el.style.transitionDelay = Math.min(i, 5) * 70 + "ms";
+      el.classList.add("aparece");
+      el.addEventListener("transitionend", function fin(ev) {
+        if (ev.propertyName !== "opacity") return;
+        el.classList.remove("aparece", "visible"); el.style.transitionDelay = ""; el.removeEventListener("transitionend", fin);
+      });
+      obs.observe(el);
+    });
+  }
+  var frase = document.querySelector("[data-manifiesto]");
+  if (frase) {
+    (function envolver(nodo) {
+      Array.prototype.slice.call(nodo.childNodes).forEach(function (n) {
+        if (n.nodeType === 3) {
+          var frag = document.createDocumentFragment();
+          n.textContent.split(/(\s+)/).forEach(function (t) {
+            if (!t) return;
+            if (/^\s+$/.test(t)) { frag.appendChild(document.createTextNode(t)); return; }
+            var w = document.createElement("span"); w.className = "mw"; w.textContent = t; frag.appendChild(w);
+          });
+          n.parentNode.replaceChild(frag, n);
+        } else if (n.nodeType === 1) envolver(n);
+      });
+    })(frase);
+    var palabras = frase.querySelectorAll(".mw");
+    if (quieto) palabras.forEach(function (w) { w.classList.add("on"); });
+    else {
+      var pintar = function () {
+        var r = frase.getBoundingClientRect(), vh = window.innerHeight;
+        var avance = Math.max(0, Math.min(1, (vh * 0.85 - r.top) / (vh * 0.45)));
+        var n = Math.round(avance * palabras.length);
+        palabras.forEach(function (w, i) { w.classList.toggle("on", i < n); });
+      };
+      window.addEventListener("scroll", pintar, { passive: true });
+      window.addEventListener("resize", pintar);
+      pintar();
+    }
+  }
 
   var params = new URLSearchParams(location.search);
   var pagina = location.pathname.replace(/^.*\//, "").replace(/\.html$/, "");
@@ -150,20 +202,36 @@
     });
   }
 
-  // Formulario de contacto
+  // Formulario de contacto. v1.18: para empresas pide el número de trabajadores (ubica la banda de precio) y el sector;
+  // viajan al inicio del mensaje, sin cambiar el servicio de formularios.
   var fc = document.getElementById("form-contacto");
+  function perfilContacto() {
+    if (!fc) return;
+    var emp = !!fc.querySelector('input[name="tipo"][value="empresa"]:checked');
+    fc.querySelectorAll(".solo-empresa").forEach(function (x) { x.hidden = !emp; });
+    var t = fc.querySelector('select[name="trabajadores"]');
+    if (t) { t.required = emp; if (!emp) t.removeAttribute("aria-invalid"); }
+  }
+  function prepararContacto(d) {
+    if (d.tipo === "empresa" && (d.trabajadores || d.sector)) {
+      d.mensaje = "Trabajadores: " + (d.trabajadores || "-") + " · Sector: " + (d.sector || "-") + "\n\n" + d.mensaje;
+    }
+    delete d.trabajadores; delete d.sector;
+    return d;
+  }
+  if (fc) { fc.addEventListener("change", perfilContacto); perfilContacto(); }
   if (fc) enviar(fc, function (res, local) {
     if (local) {
       // Sin servicio de formularios conectado: se abre el correo con el mensaje armado.
       var cuerpo = "Nombre: " + local.nombre + "\nCorreo: " + local.correo + "\nTeléfono: " + (local.telefono || "-") +
-        "\nEmpresa: " + (local.empresa || "-") + "\nEscribe como: " + local.tipo + "\nTema: " + (local.tema || "-") + "\n\n" + local.mensaje;
+        "\nEmpresa: " + (local.empresa || "-") + "\nEscribe como: " + local.tipo + "\nTema: " + (local.tema || "-") + "\n\n" + prepararContacto(local).mensaje;
       location.href = "mailto:eluna@hrticonsultores.com?subject=" + encodeURIComponent("Consulta web · " + local.nombre) + "&body=" + encodeURIComponent(cuerpo);
       aviso(fc, "info", "Se abrió tu programa de correo con el mensaje listo para enviar.");
       return;
     }
     if (res && res.ok) { evento("envio-contacto", "Mensaje de contacto enviado"); fc.reset(); aviso(fc, "ok", "Recibimos tu mensaje. Te respondemos al correo que indicaste."); }
     else aviso(fc, "error", "No se pudo enviar. Escríbenos a eluna@hrticonsultores.com.");
-  });
+  }, prepararContacto);
 
   // Consultas: precio total según el servicio (Ley N.º 29571, art. 4.1); el comprobante define el documento
   var fq = document.getElementById("form-consulta");

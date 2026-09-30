@@ -785,3 +785,73 @@ picture > source { display: none; }
 .meses6 label { font-size: .82rem; font-weight: 500; color: var(--texto-2); }
 @media (max-width: 420px) { .meses6 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .campo .opcion { font-weight: 400; }
+
+/* ---------- v1.18 (30/09/2026): movimiento con la piel de marca ----------
+   Recursos tomados del benchmark (aparición al bajar, marquesina, manifiesto que se ilumina, datos flotantes),
+   sin cifras de clientes (decisión de Ernesto, 24/09/2026) y siempre con prefers-reduced-motion. */
+@font-face { font-family: "Kaushan Script"; font-style: normal; font-weight: 400; font-display: swap; src: url(/kaushan-script-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+.script { font-family: "Kaushan Script", "Poppins", cursive; font-weight: 400; letter-spacing: 0; color: var(--cian-texto); }
+h1 .script, h2 .script { font-size: 1.06em; line-height: 1; }
+
+/* Luz cian de la portada: se desplaza lento. */
+@keyframes hrtic-luz { 0% { transform: skewX(-14deg) translate3d(0, 0, 0); } 100% { transform: skewX(-14deg) translate3d(-5%, 4%, 0); } }
+.portada::before { animation: hrtic-luz 14s ease-in-out infinite alternate; }
+.portada::after {
+  content: ""; position: absolute; width: 420px; height: 420px; right: 18%; top: 8%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 157, 222, .16), rgba(0, 157, 222, 0) 68%);
+  animation: hrtic-halo 9s ease-in-out infinite alternate;
+}
+@keyframes hrtic-halo { 0% { transform: translate3d(0, 0, 0) scale(1); opacity: .8; } 100% { transform: translate3d(-40px, 30px, 0) scale(1.15); opacity: 1; } }
+
+/* Datos que flotan junto a la tarjeta de la portada: norma y fecha, nunca cifras de clientes. */
+.portada-lado { position: relative; }
+.datos-flotantes { list-style: none; }
+.dato-flotante {
+  position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; max-width: 290px;
+  background: rgba(255, 255, 255, .96); border: 1px solid var(--borde); border-radius: 14px; box-shadow: var(--sombra);
+  font-size: .78rem; line-height: 1.35; color: var(--texto-2); text-decoration: none; animation: hrtic-flotar 6s ease-in-out infinite;
+}
+.dato-flotante strong { color: var(--grafito); font-size: .86rem; }
+.dato-flotante .k { font-size: .66rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--cian-texto); }
+a.dato-flotante:hover { border-color: var(--cian); color: var(--texto-2); }
+.dato-flotante.d1 { top: -60px; left: -36px; }
+.dato-flotante.d2 { bottom: -58px; right: 28px; animation-delay: -3s; }
+@keyframes hrtic-flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (max-width: 1080px) { .dato-flotante.d1 { left: -12px; } .dato-flotante.d2 { right: -8px; } }
+@media (max-width: 880px) {
+  .datos-flotantes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .dato-flotante { position: static; animation: none; max-width: none; flex: 1 1 220px; }
+  .datos-flotantes li { display: flex; flex: 1 1 220px; }
+}
+
+/* Marquesina de clientes (nombres autorizados; sin logos). */
+.marquesina { display: flex; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.marquesina .clientes { flex-wrap: nowrap; flex-shrink: 0; padding-right: 14px; animation: hrtic-desliza 32s linear infinite; }
+.marquesina .clientes li { white-space: nowrap; }
+.marquesina:hover .clientes, .marquesina:focus-within .clientes { animation-play-state: paused; }
+@keyframes hrtic-desliza { to { transform: translateX(-100%); } }
+
+/* Manifiesto: la tesis se ilumina palabra por palabra al bajar. */
+.manifiesto { background: var(--fondo); }
+.manifiesto-frase { font-size: clamp(2rem, 5vw, 3.8rem); line-height: 1.12; margin-bottom: 28px; }
+.manifiesto-frase .script { display: block; margin-top: .08em; }
+.manifiesto-frase .mw { color: #C9CED6; transition: color .35s ease; }
+.manifiesto-frase .mw.on { color: var(--grafito); }
+.manifiesto-frase .script .mw.on, .manifiesto-frase .script.on { color: var(--cian-texto); }
+.manifiesto-cuerpo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; max-width: 980px; }
+.manifiesto-cuerpo p { color: var(--texto-2); font-size: 1.02rem; margin: 0; }
+@media (max-width: 720px) { .manifiesto-cuerpo { grid-template-columns: 1fr; } }
+
+/* Aparición al bajar (lo activa main.js solo en lo que está fuera de la primera pantalla). */
+.aparece { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s cubic-bezier(.2, .7, .2, 1); }
+.aparece.visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portada::before, .portada::after, .dato-flotante, .marquesina .clientes { animation: none !important; }
+  .marquesina { -webkit-mask-image: none; mask-image: none; }
+  .marquesina .clientes { flex-wrap: wrap; }
+  .marquesina .clientes[aria-hidden="true"] { display: none; }
+  .aparece { opacity: 1; transform: none; }
+  .manifiesto-frase .mw { color: var(--grafito); }
+}
+.seccion.manifiesto { padding-top: clamp(64px, 8vw, 112px) !important; padding-bottom: clamp(56px, 7vw, 96px); }
