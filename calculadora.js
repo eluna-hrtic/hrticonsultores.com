@@ -1,7 +1,8 @@
 /* HRTIC · calculadora de beneficios sociales · v1.3 · 24/09/2026 (indemnización MYPE solo por dozavos; costo laboral del empleador;
    v1.3: tope de 90 remuneraciones diarias de la CTS de la pequeña empresa y textos por régimen en el costo laboral;
    v1.3.1: el Seguro Vida Ley es obligatorio también en la microempresa, D.S. 009-2020-TR, art. 2;
-   v1.4: plazo fijo resuelto antes de tiempo en la MYPE: se muestran los dos cálculos, art. 56 MYPE y art. 76 LPCL)
+   v1.4: plazo fijo resuelto antes de tiempo en la MYPE: se muestran los dos cálculos, art. 56 MYPE y art. 76 LPCL;
+   v1.5 (30/09/2026): la RMV y la asignación familiar dependen de la fecha: S/ 1,230 desde el 01/10/2026, D.S. N.º 015-2026-TR)
    Cálculo orientativo de la liquidación al cese. Normas: D.S. 001-97-TR (CTS), Ley 27735 y D.S. 005-2002-TR
    (gratificaciones), Ley 30334 (bonificación extraordinaria), D. Leg. 713 y D.S. 012-92-TR (vacaciones),
    D.S. 003-97-TR, arts. 10, 38 y 76 (indemnización), TUO D.S. 013-2013-PRODUCE (micro y pequeña empresa).
@@ -9,8 +10,30 @@
 (function () {
   "use strict";
 
-  var RMV = 1130;               // D.S. N.º 006-2024-TR, vigente desde el 01/01/2025 (revisar cuando se publique el alza)
-  var ASIGNACION = RMV * 0.10;  // Ley N.º 25129
+  /* Remuneración mínima vital según la fecha (v1.5, 30/09/2026). La asignación familiar es el 10 % de la RMV vigente
+     (Ley N.º 25129, art. 1). Verificado en El Peruano:
+     - S/ 930 desde el 01/04/2018: D.S. N.º 004-2018-TR.
+     - S/ 1,025 desde el 01/05/2022: D.S. N.º 003-2022-TR.
+     - S/ 1,130 desde el 01/01/2025: D.S. N.º 006-2024-TR.
+     - S/ 1,230 desde el 01/10/2026: D.S. N.º 015-2026-TR (edición extraordinaria del 28/09/2026). El mismo decreto anuncia un
+       segundo tramo de S/ 70 (hasta S/ 1,300) que se fijará por otro decreto supremo en el primer semestre de 2027:
+       agregar aquí la fila cuando se publique. */
+  var RMV_TABLA = [
+    { desde: "2018-04-01", monto: 930, norma: "D.S. N.º 004-2018-TR" },
+    { desde: "2022-05-01", monto: 1025, norma: "D.S. N.º 003-2022-TR" },
+    { desde: "2025-01-01", monto: 1130, norma: "D.S. N.º 006-2024-TR" },
+    { desde: "2026-10-01", monto: 1230, norma: "D.S. N.º 015-2026-TR" }
+  ];
+  function rmvEn(f) {
+    var v = RMV_TABLA[0];
+    for (var i = 0; i < RMV_TABLA.length; i++) if (fecha(RMV_TABLA[i].desde) <= f) v = RMV_TABLA[i];
+    return { monto: v.monto, norma: v.norma, desde: v.desde, anterior: f < fecha(RMV_TABLA[0].desde) };
+  }
+  /* Fecha de hoy en Lima (UTC-5, sin horario de verano), como fecha UTC a medianoche. */
+  function hoyLima() {
+    var t = new Date(Date.now() - 5 * 3600000);
+    return new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()));
+  }
 
   // ---------- fechas (en UTC para no depender de la zona horaria del navegador) ----------
   function fecha(txt) {
@@ -58,6 +81,7 @@
     var sueldo = +d.sueldo || 0, variables = +d.variables || 0;
     if (sueldo <= 0) return { error: "Ingresa tu remuneración mensual." };
     var reg = d.regimen || "general", mype = reg !== "general";
+    var rmv = rmvEn(cese), RMV = rmv.monto, ASIGNACION = r2(RMV * 0.10);   // la vigente a la fecha de cese
     var af = d.asignacion ? ASIGNACION : 0;          // el TUO MYPE no la incluye (art. 50): se suma solo si la pagan
     var rc = sueldo + af + variables;               // remuneración computable mensual
     var factor = reg === "pequena" ? 0.5 : 1;       // pequeña empresa: la mitad (15 días de CTS, media gratificación)
@@ -73,7 +97,10 @@
       notas.push("El TUO D.S. N.º 013-2013-PRODUCE no incluye la asignación familiar entre los derechos del régimen MYPE (art. 50). La calculadora la suma porque indicas que la recibes: si se paga, forma parte de tu remuneración.");
     }
     if (!d.menosDe4h && sueldo < RMV) {
-      notas.push("Tu remuneración es menor que la mínima vital (S/ " + RMV.toFixed(2) + "). Si trabajas jornada completa, tu empleador debe pagarte al menos ese monto.");
+      notas.push("Tu remuneración es menor que la mínima vital vigente a tu fecha de cese (S/ " + RMV.toFixed(2) + ", " + rmv.norma + "). Si trabajas jornada completa, tu empleador debe pagarte al menos ese monto.");
+    }
+    if (rmv.anterior) {
+      notas.push("Tu fecha de cese es anterior al 01/04/2018: la calculadora usa la RMV de S/ 930 como referencia. Ten en cuenta que los derechos laborales prescriben a los cuatro años desde el cese (Ley N.º 27321, art. único).");
     }
 
     // Gratificación de julio pendiente (cese entre el 1 y el 14 de julio, antes del pago).
@@ -256,7 +283,7 @@
     conceptos.forEach(function (c) { suma += c.monto; });
     notas.push("Es un cálculo orientativo. No incluye descuentos (AFP u ONP e impuesto), horas extras, utilidades, remuneraciones pendientes ni lo que diga tu contrato o un convenio colectivo.");
     if (alternativas) alternativas.forEach(function (a) { a.total = r2(suma + a.monto); });
-    return { conceptos: conceptos, total: r2(suma), rc: r2(rc), asignacion: r2(af), alternativas: alternativas,
+    return { conceptos: conceptos, total: r2(suma), rc: r2(rc), asignacion: r2(af), alternativas: alternativas, rmv: rmv,
              servicio: anios + " año(s), " + mesesSueltos + " mes(es) y " + total.dias + " día(s)", notas: notas };
   }
 
@@ -279,8 +306,9 @@
   function costoLaboral(d) {
     var sueldo = +d.sueldo || 0;
     if (sueldo <= 0) return { error: "Ingresa la remuneración mensual del puesto." };
+    var rmv = rmvEn(d.fecha ? fecha(d.fecha) : hoyLima()), RMV = rmv.monto, ASIGNACION = r2(RMV * 0.10);   // la vigente hoy
     var reg = d.regimen || "general", notas = [], filas = [];
-    if (sueldo < RMV) return { error: "La remuneración no puede ser menor que la mínima vital (S/ " + RMV.toFixed(2) + ") para una jornada completa (TUO D.S. N.º 013-2013-PRODUCE, art. 52; en el régimen general, la RMV vigente)." };
+    if (sueldo < RMV) return { error: "La remuneración no puede ser menor que la mínima vital vigente (S/ " + RMV.toFixed(2) + ", " + rmv.norma + ") para una jornada completa (TUO D.S. N.º 013-2013-PRODUCE, art. 52; en el régimen general, la RMV vigente)." };
     var af = d.asignacion ? ASIGNACION : 0, rc = sueldo + af;
     var salud = d.salud || (reg === "micro" ? "sis" : "essalud");
     if (reg !== "micro" && salud === "sis") salud = "essalud";
@@ -342,7 +370,8 @@
                "Tampoco incluye horas extras, movilidad, bonos ni lo que diga un convenio colectivo. Los aportes a la AFP o a la ONP los paga el trabajador: se descuentan de su remuneración y no son un costo adicional para la empresa.");
     if (reg !== "general") notas.push("El régimen MYPE solo se aplica si la empresa está inscrita en el REMYPE. La Ley N.º 32353 mantiene estos mismos montos (arts. 44, 49 y 50) y rige al día siguiente de publicado su reglamento.");
     if (reg === "general" && d.asignacion === false) notas.push("Si el trabajador tiene hijos menores de 18 años, o mayores que siguen estudios superiores (hasta seis años después de cumplir 18), le corresponde asignación familiar: marca la casilla para sumarla (Ley N.º 25129; D.S. N.º 035-90-TR, art. 6).");
-    return { filas: filas, total: total, mensual: r2(total / 12), sobre: r2(total / remAnual * 100), rc: r2(rc), regimen: reg, notas: notas };
+    notas.push("Remuneración mínima vital usada: S/ " + RMV.toFixed(2) + " (" + rmv.norma + "). El D.S. N.º 015-2026-TR anuncia un segundo tramo, hasta S/ 1,300, que requiere otro decreto supremo en el primer semestre de 2027: si se publica, la base mínima de EsSalud y la asignación familiar suben con él.");
+    return { filas: filas, total: total, mensual: r2(total / 12), sobre: r2(total / remAnual * 100), rc: r2(rc), regimen: reg, notas: notas, rmv: rmv };
   }
 
   function fmtFecha(f) {
@@ -387,7 +416,8 @@
       salida.innerHTML =
         '<span class="kicker">' + (r.alternativas ? "Resultado estimado sin la indemnización" : "Resultado estimado") + '</span>' +
         '<p class="total">' + soles(r.total) + "</p>" +
-        '<p class="calc-nota">Tiempo de servicios: ' + r.servicio + " · Remuneración computable: " + soles(r.rc) + "</p>" +
+        '<p class="calc-nota">Tiempo de servicios: ' + r.servicio + " · Remuneración computable: " + soles(r.rc) +
+        " · RMV a la fecha de cese: " + soles(r.rmv.monto) + " (" + r.rmv.norma + ")</p>" +
         '<div class="tabla-scroll"><table class="tabla-guia"><thead><tr><th>Concepto</th><th class="num">Monto</th></tr></thead><tbody>' +
         filas + "</tbody></table></div>" +
         (r.alternativas ? '<p style="margin-top:16px"><strong>Indemnización: dos cálculos posibles</strong></p>' +
@@ -447,7 +477,7 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { calcular: calcular, costoLaboral: costoLaboral, tiempo: tiempo, mesesCalendario: mesesCalendario };
+    module.exports = { calcular: calcular, costoLaboral: costoLaboral, tiempo: tiempo, mesesCalendario: mesesCalendario, rmvEn: rmvEn, fecha: fecha };
   } else {
     window.HRTICcalc = { calcular: calcular, costoLaboral: costoLaboral };
     var arrancar = function () { iniciar(); iniciarCosto(); };
