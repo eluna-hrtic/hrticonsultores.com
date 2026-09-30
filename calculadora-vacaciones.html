@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calculadora de vacaciones 2026: pendientes, vencidas y truncas · HRTIC</title>
-<meta name="description" content="Calcula tus vacaciones en el Perú: días por gozar, vacaciones vencidas con su indemnización y truncas al cesar. Régimen general, micro y pequeña empresa.">
+<meta name="description" content="Calcula tus vacaciones en el Perú: días por gozar, vacaciones vencidas con su indemnización y truncas al cesar. Régimen general, MYPE, hogar y agrario.">
 <link rel="canonical" href="https://hrticonsultores.com/calculadora-vacaciones.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_PE">
 <meta property="og:site_name" content="HRTIC · HR Talento Integral Consultores">
 <meta property="og:title" content="Calculadora de vacaciones 2026: pendientes, vencidas y truncas · HRTIC">
-<meta property="og:description" content="Calcula tus vacaciones en el Perú: días por gozar, vacaciones vencidas con su indemnización y truncas al cesar. Régimen general, micro y pequeña empresa.">
+<meta property="og:description" content="Calcula tus vacaciones en el Perú: días por gozar, vacaciones vencidas con su indemnización y truncas al cesar. Régimen general, MYPE, hogar y agrario.">
 <meta property="og:url" content="https://hrticonsultores.com/calculadora-vacaciones.html">
 <meta property="og:image" content="https://hrticonsultores.com/hrtic-compartir.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -51,11 +51,11 @@
 <section class="seccion">
   <div class="contenedor">
     <p class="migas"><a href="guias.html">Guías</a> · Calculadora de vacaciones</p>
-    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html" aria-current="page">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
+    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html" aria-current="page">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-construccion-civil.html">Construcción civil</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
     <div class="intro">
       <span class="kicker">Calculadora gratuita</span>
       <h1>Calcula tus vacaciones pendientes, vencidas y truncas</h1>
-      <p class="lead">Cuántos días te deben, cuánto vale cada uno y cuándo corresponde la indemnización vacacional. Para el régimen general y para la micro y pequeña empresa.</p>
+      <p class="lead">Cuántos días te deben, cuánto vale cada uno y cuándo corresponde la indemnización vacacional. Para el régimen general, la micro y pequeña empresa, las trabajadoras y trabajadores del hogar y el régimen agrario.</p>
       <p class="calc-nota">Los datos se calculan en tu navegador: no se envían ni se guardan. La remuneración mínima y la asignación familiar se toman según la fecha: S/ 1,230 y S/ 123 desde el 1 de octubre de 2026 (D.S. N.º 015-2026-TR); S/ 1,130 y S/ 113 hasta el 30 de setiembre. Actualizada al 30 de setiembre de 2026.</p>
     </div>
     <div class="calc">
@@ -65,9 +65,11 @@
             <option value="general">Régimen general (la mayoría de las empresas)</option>
             <option value="pequena">Pequeña empresa inscrita en el REMYPE</option>
             <option value="micro">Microempresa inscrita en el REMYPE</option>
+            <option value="hogar">Trabajadora o trabajador del hogar (Ley N.º 31047)</option>
+            <option value="agrario">Régimen agrario (Ley N.º 31110)</option>
           </select>
           <span class="ayuda">Si no sabes, elige régimen general. Una empresa solo aplica el régimen MYPE si está inscrita en el REMYPE.</span>
-        </div><div class="fila">
+        </div><div class="campo solo-agrario" hidden><label for="f-vac-prorrateo">¿Cómo te pagan la CTS y la gratificación?</label><select id="f-vac-prorrateo" name="prorrateo"><option value="si">Incluidas en mi pago diario, semanal o quincenal (prorrateo)</option><option value="no">Aparte: la CTS en mayo y noviembre, la gratificación en julio y diciembre</option></select><span class="ayuda">Lo usual es el prorrateo: se pagan aparte solo si lo pediste por escrito al ingresar (D.S. N.º 005-2021-MIDAGRI, art. 8). Como remuneración escribe tu remuneración básica mensual, sin gratificación, CTS ni BETA.</span></div><p class="calc-nota solo-hogar" hidden>Trabajadora o trabajador del hogar: los beneficios se calculan como en el régimen general (Ley N.º 31047). Escribe tu remuneración en dinero: la alimentación y el alojamiento no cuentan. Para el promedio de 4 horas, divide tus horas de la semana entre los días que trabajas.</p><div class="fila">
           <div class="campo"><label for="f-vac-ingreso">Fecha de ingreso</label><input id="f-vac-ingreso" name="ingreso" type="date" required></div>
           <div class="campo"><label for="f-vac-corte">Calcular al (opcional)</label><input id="f-vac-corte" name="corte" type="date">
             <span class="ayuda">Vacío: hoy. Si ya cesaste, pon tu último día de trabajo.</span></div>
@@ -96,6 +98,9 @@
           <tr><td>Vacaciones truncas</td><td>Al cesar: dozavos y treintavos desde tu último aniversario, con un mes de servicios como mínimo (D. Leg. N.º 713, art. 22; D.S. N.º 012-92-TR, art. 23)</td><td>Igual, sobre 15 días</td></tr>
         </tbody></table></div>
       <p>La indemnización vacacional no alcanza a gerentes o representantes de la empresa que decidieron no gozar su descanso (D.S. N.º 012-92-TR, art. 24).</p>
+      <h2>Trabajadoras del hogar y régimen agrario</h2>
+      <p><strong>Trabajadoras y trabajadores del hogar.</strong> 30 días de descanso por año, con las mismas reglas del régimen general (Ley N.º 31047, art. 11).</p>
+      <p><strong>Régimen agrario.</strong> 30 días por año. Con prorrateo, la remuneración vacacional es de 30 remuneraciones diarias más los otros conceptos remunerativos; sin prorrateo, la remuneración básica (D.S. N.º 005-2021-MIDAGRI, art. 12). Las vacaciones truncas equivalen al 8.33 % de la remuneración básica por mes (Ley N.º 31110, art. 3, lit. g).</p>
       <p class="aviso-guia">El resultado es orientativo y no reemplaza la revisión de tu caso. No incluye descuentos de AFP u ONP ni de impuesto a la renta, faltas, licencias sin goce ni beneficios de tu contrato o de un convenio colectivo. Si el monto no coincide con tu boleta, <a href="consultas.html">haz una consulta por escrito</a> y te respondemos a más tardar el siguiente día hábil.</p>
     </div>
   </div>

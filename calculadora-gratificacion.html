@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calculadora de gratificación 2026 (julio y diciembre) · HRTIC</title>
-<meta name="description" content="Calcula tu gratificación de julio o de diciembre en el Perú, completa o trunca, con la bonificación extraordinaria. Régimen general y pequeña empresa.">
+<meta name="description" content="Calcula tu gratificación de julio o de diciembre en el Perú, completa o trunca, con la bonificación extraordinaria. Régimen general, pequeña empresa, hogar y agrario.">
 <link rel="canonical" href="https://hrticonsultores.com/calculadora-gratificacion.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_PE">
 <meta property="og:site_name" content="HRTIC · HR Talento Integral Consultores">
 <meta property="og:title" content="Calculadora de gratificación 2026 (julio y diciembre) · HRTIC">
-<meta property="og:description" content="Calcula tu gratificación de julio o de diciembre en el Perú, completa o trunca, con la bonificación extraordinaria. Régimen general y pequeña empresa.">
+<meta property="og:description" content="Calcula tu gratificación de julio o de diciembre en el Perú, completa o trunca, con la bonificación extraordinaria. Régimen general, pequeña empresa, hogar y agrario.">
 <meta property="og:url" content="https://hrticonsultores.com/calculadora-gratificacion.html">
 <meta property="og:image" content="https://hrticonsultores.com/hrtic-compartir.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -51,11 +51,11 @@
 <section class="seccion">
   <div class="contenedor">
     <p class="migas"><a href="guias.html">Guías</a> · Calculadora de gratificación</p>
-    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html" aria-current="page">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
+    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html" aria-current="page">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-construccion-civil.html">Construcción civil</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
     <div class="intro">
       <span class="kicker">Calculadora gratuita</span>
       <h1>Calcula tu gratificación de julio o de diciembre</h1>
-      <p class="lead">Completa, proporcional o trunca, con la bonificación extraordinaria. Para el régimen general y para la pequeña empresa inscrita en el REMYPE.</p>
+      <p class="lead">Completa, proporcional o trunca, con la bonificación extraordinaria. Para el régimen general, la pequeña empresa inscrita en el REMYPE, las trabajadoras y trabajadores del hogar y el régimen agrario.</p>
       <p class="calc-nota">Los datos se calculan en tu navegador: no se envían ni se guardan. La remuneración mínima y la asignación familiar se toman según la fecha: S/ 1,230 y S/ 123 desde el 1 de octubre de 2026 (D.S. N.º 015-2026-TR); S/ 1,130 y S/ 113 hasta el 30 de setiembre. Actualizada al 30 de setiembre de 2026.</p>
     </div>
     <div class="calc">
@@ -65,9 +65,11 @@
             <option value="general">Régimen general (la mayoría de las empresas)</option>
             <option value="pequena">Pequeña empresa inscrita en el REMYPE</option>
             <option value="micro">Microempresa inscrita en el REMYPE</option>
+            <option value="hogar">Trabajadora o trabajador del hogar (Ley N.º 31047)</option>
+            <option value="agrario">Régimen agrario (Ley N.º 31110)</option>
           </select>
           <span class="ayuda">Si no sabes, elige régimen general. Una empresa solo aplica el régimen MYPE si está inscrita en el REMYPE.</span>
-        </div><div class="fila">
+        </div><div class="campo solo-agrario" hidden><label for="f-grati-prorrateo">¿Cómo te pagan la CTS y la gratificación?</label><select id="f-grati-prorrateo" name="prorrateo"><option value="si">Incluidas en mi pago diario, semanal o quincenal (prorrateo)</option><option value="no">Aparte: la CTS en mayo y noviembre, la gratificación en julio y diciembre</option></select><span class="ayuda">Lo usual es el prorrateo: se pagan aparte solo si lo pediste por escrito al ingresar (D.S. N.º 005-2021-MIDAGRI, art. 8). Como remuneración escribe tu remuneración básica mensual, sin gratificación, CTS ni BETA.</span></div><p class="calc-nota solo-hogar" hidden>Trabajadora o trabajador del hogar: los beneficios se calculan como en el régimen general (Ley N.º 31047). Escribe tu remuneración en dinero: la alimentación y el alojamiento no cuentan. Para el promedio de 4 horas, divide tus horas de la semana entre los días que trabajas.</p><div class="fila">
           <div class="campo"><label for="f-grati-periodo">Gratificación</label>
             <select id="f-grati-periodo" name="periodo"><option value="diciembre">Navidad (diciembre)</option><option value="julio">Fiestas Patrias (julio)</option></select></div>
           <div class="campo"><label for="f-grati-anio">Año</label>
@@ -101,6 +103,9 @@
           <tr><td>Descuentos</td><td>No paga AFP, ONP ni EsSalud (Ley N.º 30334, art. 1). Puede tener retención de quinta categoría</td><td>Igual</td><td>No corresponde</td></tr>
         </tbody></table></div>
       <p>La remuneración computable es tu sueldo bruto, más la asignación familiar si la recibes, más el promedio de los pagos variables que recibiste al menos tres meses del semestre (D.S. N.º 005-2002-TR, art. 3). La gratificación se paga dentro de la primera quincena de julio y de diciembre (Ley N.º 27735, art. 5).</p>
+      <h2>Trabajadoras del hogar y régimen agrario</h2>
+      <p><strong>Trabajadoras y trabajadores del hogar.</strong> Una remuneración en julio y otra en diciembre, como en el régimen general, aunque la jornada sea menor de 4 horas (Ley N.º 31047, art. 9; D.S. N.º 009-2021-TR, art. 14). La alimentación y el alojamiento no son remuneración (Ley N.º 31047, art. 6).</p>
+      <p><strong>Régimen agrario.</strong> La gratificación es el 16.66 % de la remuneración básica y se paga dentro de cada remuneración, salvo que el trabajador haya pedido por escrito cobrarla en julio y diciembre (Ley N.º 31110, art. 3; D.S. N.º 005-2021-MIDAGRI, art. 8). La bonificación extraordinaria es de 6 %, porque el aporte agrario a EsSalud es de 6 % hasta diciembre de 2028 (Ley N.º 30334, art. 3; Ley N.º 31969, art. 9).</p>
       <p class="aviso-guia">El resultado es orientativo y no reemplaza la revisión de tu caso. No incluye descuentos de AFP u ONP ni de impuesto a la renta, faltas, licencias sin goce ni beneficios de tu contrato o de un convenio colectivo. Si el monto no coincide con tu boleta, <a href="consultas.html">haz una consulta por escrito</a> y te respondemos a más tardar el siguiente día hábil.</p>
     </div>
   </div>

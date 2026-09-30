@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calculadora de indemnización por despido 2026 · HRTIC</title>
-<meta name="description" content="Calcula la indemnización por despido arbitrario o por despido antes de que venza un contrato a plazo fijo en el Perú. Régimen general, pequeña y microempresa.">
+<meta name="description" content="Calcula la indemnización por despido arbitrario o por despido antes de que venza un contrato a plazo fijo en el Perú. Régimen general, MYPE, hogar y agrario.">
 <link rel="canonical" href="https://hrticonsultores.com/calculadora-indemnizacion.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_PE">
 <meta property="og:site_name" content="HRTIC · HR Talento Integral Consultores">
 <meta property="og:title" content="Calculadora de indemnización por despido 2026 · HRTIC">
-<meta property="og:description" content="Calcula la indemnización por despido arbitrario o por despido antes de que venza un contrato a plazo fijo en el Perú. Régimen general, pequeña y microempresa.">
+<meta property="og:description" content="Calcula la indemnización por despido arbitrario o por despido antes de que venza un contrato a plazo fijo en el Perú. Régimen general, MYPE, hogar y agrario.">
 <meta property="og:url" content="https://hrticonsultores.com/calculadora-indemnizacion.html">
 <meta property="og:image" content="https://hrticonsultores.com/hrtic-compartir.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -51,11 +51,11 @@
 <section class="seccion">
   <div class="contenedor">
     <p class="migas"><a href="guias.html">Guías</a> · Calculadora de indemnización</p>
-    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html" aria-current="page">Indemnización</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
+    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html" aria-current="page">Indemnización</a><a href="calculadora-construccion-civil.html">Construcción civil</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
     <div class="intro">
       <span class="kicker">Calculadora gratuita</span>
       <h1>Calcula la indemnización por despido</h1>
-      <p class="lead">Despido arbitrario de un contrato indefinido o despido antes de que venza un contrato a plazo fijo. Para el régimen general y para la micro y pequeña empresa.</p>
+      <p class="lead">Despido arbitrario de un contrato indefinido o despido antes de que venza un contrato a plazo fijo. Para el régimen general, la micro y pequeña empresa, las trabajadoras y trabajadores del hogar y el régimen agrario.</p>
       <p class="calc-nota">Los datos se calculan en tu navegador: no se envían ni se guardan. La remuneración mínima y la asignación familiar se toman según la fecha: S/ 1,230 y S/ 123 desde el 1 de octubre de 2026 (D.S. N.º 015-2026-TR); S/ 1,130 y S/ 113 hasta el 30 de setiembre. Actualizada al 30 de setiembre de 2026.</p>
     </div>
     <div class="calc">
@@ -65,9 +65,11 @@
             <option value="general">Régimen general (la mayoría de las empresas)</option>
             <option value="pequena">Pequeña empresa inscrita en el REMYPE</option>
             <option value="micro">Microempresa inscrita en el REMYPE</option>
+            <option value="hogar">Trabajadora o trabajador del hogar (Ley N.º 31047)</option>
+            <option value="agrario">Régimen agrario (Ley N.º 31110)</option>
           </select>
           <span class="ayuda">Si no sabes, elige régimen general. Una empresa solo aplica el régimen MYPE si está inscrita en el REMYPE.</span>
-        </div><div class="fila">
+        </div><div class="campo solo-agrario" hidden><label for="f-ind-prorrateo">¿Cómo te pagan la CTS y la gratificación?</label><select id="f-ind-prorrateo" name="prorrateo"><option value="si">Incluidas en mi pago diario, semanal o quincenal (prorrateo)</option><option value="no">Aparte: la CTS en mayo y noviembre, la gratificación en julio y diciembre</option></select><span class="ayuda">Lo usual es el prorrateo: se pagan aparte solo si lo pediste por escrito al ingresar (D.S. N.º 005-2021-MIDAGRI, art. 8). Como remuneración escribe tu remuneración básica mensual, sin gratificación, CTS ni BETA.</span></div><p class="calc-nota solo-hogar" hidden>Trabajadora o trabajador del hogar: los beneficios se calculan como en el régimen general (Ley N.º 31047). Escribe tu remuneración en dinero: la alimentación y el alojamiento no cuentan. Para el promedio de 4 horas, divide tus horas de la semana entre los días que trabajas.</p><div class="fila">
           <div class="campo"><label for="f-ind-ingreso">Fecha de ingreso</label><input id="f-ind-ingreso" name="ingreso" type="date" required></div>
           <div class="campo"><label for="f-ind-cese">Fecha del despido</label><input id="f-ind-cese" name="cese" type="date" required></div>
         </div>
@@ -94,6 +96,9 @@
           <tr><td>Periodo de prueba</td><td colspan="3">Con 3 meses o menos de servicios no hay indemnización por despido arbitrario, salvo que el despido sea nulo (D.S. N.º 003-97-TR, arts. 10 y 38)</td></tr>
         </tbody></table></div>
       <p>La base es la remuneración ordinaria mensual: el sueldo bruto con los conceptos remunerativos regulares, sin la gratificación. El plazo para demandar es de 30 días naturales desde el despido (D.S. N.º 003-97-TR, art. 36): si crees que el despido fue nulo o fraudulento, revisa tu caso antes de firmar la liquidación.</p>
+      <h2>Trabajadoras del hogar y régimen agrario</h2>
+      <p><strong>Trabajadoras y trabajadores del hogar.</strong> 1.5 remuneraciones por año, con tope de 12, como en el régimen general (Ley N.º 31047, art. 13; D.S. N.º 003-97-TR, art. 38). El despido por embarazo es nulo: corresponde la reposición.</p>
+      <p><strong>Régimen agrario.</strong> 45 remuneraciones diarias por año, con dozavos y treintavos y tope de 360 (Ley N.º 31110, art. 3, lit. h). Si el contrato era a plazo fijo, la calculadora muestra también el cálculo por los meses que faltaban (D.S. N.º 003-97-TR, art. 76), porque ninguna norma dice cuál prima.</p>
       <p class="aviso-guia">El resultado es orientativo y no reemplaza la revisión de tu caso. No incluye descuentos de AFP u ONP ni de impuesto a la renta, faltas, licencias sin goce ni beneficios de tu contrato o de un convenio colectivo. Si el monto no coincide con tu boleta, <a href="consultas.html">haz una consulta por escrito</a> y te respondemos a más tardar el siguiente día hábil.</p>
     </div>
   </div>

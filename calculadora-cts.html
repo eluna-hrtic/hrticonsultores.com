@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calculadora de CTS 2026 (mayo y noviembre) · HRTIC</title>
-<meta name="description" content="Calcula tu depósito de CTS de mayo o de noviembre en el Perú, con el sexto de la gratificación y la RMV vigente. Régimen general y pequeña empresa.">
+<meta name="description" content="Calcula tu depósito de CTS de mayo o de noviembre en el Perú, con el sexto de la gratificación y la RMV vigente. Régimen general, pequeña empresa, hogar y agrario.">
 <link rel="canonical" href="https://hrticonsultores.com/calculadora-cts.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_PE">
 <meta property="og:site_name" content="HRTIC · HR Talento Integral Consultores">
 <meta property="og:title" content="Calculadora de CTS 2026 (mayo y noviembre) · HRTIC">
-<meta property="og:description" content="Calcula tu depósito de CTS de mayo o de noviembre en el Perú, con el sexto de la gratificación y la RMV vigente. Régimen general y pequeña empresa.">
+<meta property="og:description" content="Calcula tu depósito de CTS de mayo o de noviembre en el Perú, con el sexto de la gratificación y la RMV vigente. Régimen general, pequeña empresa, hogar y agrario.">
 <meta property="og:url" content="https://hrticonsultores.com/calculadora-cts.html">
 <meta property="og:image" content="https://hrticonsultores.com/hrtic-compartir.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -51,11 +51,11 @@
 <section class="seccion">
   <div class="contenedor">
     <p class="migas"><a href="guias.html">Guías</a> · Calculadora de CTS</p>
-    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html" aria-current="page">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
+    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html" aria-current="page">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-construccion-civil.html">Construcción civil</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
     <div class="intro">
       <span class="kicker">Calculadora gratuita</span>
       <h1>Calcula tu depósito de CTS de mayo o de noviembre</h1>
-      <p class="lead">Con el sexto de la gratificación, los pagos regulares y la remuneración mínima vigente. Para el régimen general y para la pequeña empresa inscrita en el REMYPE.</p>
+      <p class="lead">Con el sexto de la gratificación, los pagos regulares y la remuneración mínima vigente. Para el régimen general, la pequeña empresa inscrita en el REMYPE, las trabajadoras y trabajadores del hogar y el régimen agrario.</p>
       <p class="calc-nota">Los datos se calculan en tu navegador: no se envían ni se guardan. La remuneración mínima y la asignación familiar se toman según la fecha: S/ 1,230 y S/ 123 desde el 1 de octubre de 2026 (D.S. N.º 015-2026-TR); S/ 1,130 y S/ 113 hasta el 30 de setiembre. Actualizada al 30 de setiembre de 2026.</p>
     </div>
     <div class="calc">
@@ -65,9 +65,11 @@
             <option value="general">Régimen general (la mayoría de las empresas)</option>
             <option value="pequena">Pequeña empresa inscrita en el REMYPE</option>
             <option value="micro">Microempresa inscrita en el REMYPE</option>
+            <option value="hogar">Trabajadora o trabajador del hogar (Ley N.º 31047)</option>
+            <option value="agrario">Régimen agrario (Ley N.º 31110)</option>
           </select>
           <span class="ayuda">Si no sabes, elige régimen general. Una empresa solo aplica el régimen MYPE si está inscrita en el REMYPE.</span>
-        </div><div class="fila">
+        </div><div class="campo solo-agrario" hidden><label for="f-cts-prorrateo">¿Cómo te pagan la CTS y la gratificación?</label><select id="f-cts-prorrateo" name="prorrateo"><option value="si">Incluidas en mi pago diario, semanal o quincenal (prorrateo)</option><option value="no">Aparte: la CTS en mayo y noviembre, la gratificación en julio y diciembre</option></select><span class="ayuda">Lo usual es el prorrateo: se pagan aparte solo si lo pediste por escrito al ingresar (D.S. N.º 005-2021-MIDAGRI, art. 8). Como remuneración escribe tu remuneración básica mensual, sin gratificación, CTS ni BETA.</span></div><p class="calc-nota solo-hogar" hidden>Trabajadora o trabajador del hogar: los beneficios se calculan como en el régimen general (Ley N.º 31047). Escribe tu remuneración en dinero: la alimentación y el alojamiento no cuentan. Para el promedio de 4 horas, divide tus horas de la semana entre los días que trabajas.</p><div class="fila">
           <div class="campo"><label for="f-cts-periodo">Depósito</label>
             <select id="f-cts-periodo" name="periodo"><option value="noviembre">Noviembre (semestre de mayo a octubre)</option><option value="mayo">Mayo (semestre de noviembre a abril)</option></select></div>
           <div class="campo"><label for="f-cts-anio">Año del depósito</label>
@@ -97,6 +99,9 @@
           <tr><td>Requisitos</td><td>Un mes de servicios y jornada de 4 horas diarias o más en promedio (arts. 2 y 4)</td><td>Igual</td><td>No corresponde</td></tr>
         </tbody></table></div>
       <p>La bonificación extraordinaria de la gratificación no forma parte del sexto, porque no es remunerativa (Ley N.º 30334, art. 3). Dentro de los 5 días hábiles del depósito, el empleador entrega la hoja de liquidación de la CTS (D.S. N.º 001-97-TR, art. 29).</p>
+      <h2>Trabajadoras del hogar y régimen agrario</h2>
+      <p><strong>Trabajadoras y trabajadores del hogar.</strong> Depósitos en mayo y noviembre, como en el régimen general, si la jornada promedio es de 4 horas o más por día trabajado (Ley N.º 31047, arts. 9 y 10; D.S. N.º 009-2021-TR).</p>
+      <p><strong>Régimen agrario.</strong> La CTS es el 9.72 % de la remuneración básica y se paga dentro de cada remuneración; solo se deposita en mayo y noviembre si el trabajador lo pidió por escrito al ingresar (Ley N.º 31110, art. 3; D.S. N.º 005-2021-MIDAGRI, art. 8).</p>
       <p class="aviso-guia">El resultado es orientativo y no reemplaza la revisión de tu caso. No incluye descuentos de AFP u ONP ni de impuesto a la renta, faltas, licencias sin goce ni beneficios de tu contrato o de un convenio colectivo. Si el monto no coincide con tu boleta, <a href="consultas.html">haz una consulta por escrito</a> y te respondemos a más tardar el siguiente día hábil.</p>
     </div>
   </div>
