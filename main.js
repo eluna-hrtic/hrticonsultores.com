@@ -1,4 +1,4 @@
-/* HRTIC · sitio web v1.18 · comportamiento mínimo, sin dependencias (movimiento con prefers-reduced-motion desde el 30/09/2026) */
+/* HRTIC · sitio web v1.20 · comportamiento mínimo, sin dependencias (movimiento con prefers-reduced-motion desde el 30/09/2026) */
 (function () {
   "use strict";
 
@@ -78,6 +78,101 @@
       window.addEventListener("resize", pintar);
       pintar();
     }
+  }
+
+
+  // v1.20 (30/09/2026): experiencia en el celular. Carruseles que se asoman, detalle de las líneas y de las condiciones
+  // plegado. Solo en pantallas angostas: en computadora no cambia nada. Sin JavaScript todo se ve completo.
+  var angosta = window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
+  var mediana = window.matchMedia && window.matchMedia("(max-width: 720px)").matches;
+  if (angosta) {
+    document.querySelectorAll(".rejilla-siete, .rejilla:not(.guias-rejilla), .pasos, .testimonios, .galeria, .valores").forEach(function (c) {
+      if (c.children.length < 2 || c.closest(".calc")) return;
+      var aviso = document.createElement("p");
+      aviso.className = "desliza"; aviso.setAttribute("aria-hidden", "true"); aviso.textContent = "Desliza para ver más";
+      c.parentNode.insertBefore(aviso, c.nextSibling);
+      c.addEventListener("scroll", function () { aviso.classList.add("visto"); }, { passive: true, once: true });
+      if (!quieto && "IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            io.disconnect();
+            // El imán del carrusel devolvería el empujón a 0: se suspende mientras dura.
+            setTimeout(function () {
+              c.style.scrollSnapType = "none";
+              c.scrollBy({ left: 72, behavior: "smooth" });
+              setTimeout(function () { c.scrollBy({ left: -72, behavior: "smooth" }); }, 700);
+              setTimeout(function () { c.style.scrollSnapType = ""; }, 1500);
+            }, 400);
+          });
+        }, { threshold: 0.6 });
+        io.observe(c);
+      }
+    });
+  }
+  if (angosta) {
+    // Criterio: cada novedad normativa muestra su título y estado; el resumen y la fuente se abren al tocar.
+    document.querySelectorAll(".novedad").forEach(function (li, i) {
+      if (location.hash === "#" + li.id) return;
+      var cuerpo = li.querySelector(".novedad-cuerpo"), h = cuerpo && cuerpo.querySelector("h3");
+      if (!h || !h.nextElementSibling) return;
+      var det = document.createElement("div");
+      det.className = "plegable"; det.id = "novedad-detalle-" + (i + 1);
+      var n = h.nextElementSibling;
+      while (n) { var sig = n.nextElementSibling; det.appendChild(n); n = sig; }
+      cuerpo.appendChild(det);
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "plegar-titulo"; b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", det.id);
+      while (h.firstChild) b.appendChild(h.firstChild);
+      h.appendChild(b);
+      plegable(b, det, null);
+    });
+  }
+  function plegable(boton, cuerpo, textos) {
+    boton.addEventListener("click", function () {
+      var abrir = boton.getAttribute("aria-expanded") !== "true";
+      boton.setAttribute("aria-expanded", abrir ? "true" : "false");
+      if (textos) boton.firstChild.textContent = abrir ? textos[1] : textos[0];
+      if (abrir) {
+        cuerpo.style.maxHeight = cuerpo.scrollHeight + "px";
+        var fin = function (ev) { if (ev.propertyName === "max-height" && boton.getAttribute("aria-expanded") === "true") cuerpo.style.maxHeight = "none"; cuerpo.removeEventListener("transitionend", fin); };
+        cuerpo.addEventListener("transitionend", fin);
+        if (quieto) cuerpo.style.maxHeight = "none";
+      } else {
+        cuerpo.style.maxHeight = cuerpo.scrollHeight + "px";
+        void cuerpo.offsetHeight;
+        cuerpo.style.maxHeight = "0px";
+      }
+    });
+  }
+  if (mediana) {
+    document.querySelectorAll(".linea").forEach(function (l, i) {
+      var cab = l.querySelector(".cabeza"), det = cab && cab.nextElementSibling;
+      if (!det || location.hash === "#" + l.id) return;
+      det.id = det.id || "linea-detalle-" + (i + 1);
+      det.classList.add("plegable");
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "plegar"; b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", det.id);
+      b.appendChild(document.createTextNode("Ver qué hacemos y entregables"));
+      cab.appendChild(b);
+      plegable(b, det, ["Ver qué hacemos y entregables", "Ocultar el detalle"]);
+    });
+    document.querySelectorAll(".legal").forEach(function (sec, k) {
+      var titulos = Array.prototype.filter.call(sec.children, function (x) { return x.tagName === "H3"; });
+      if (titulos.length < 3) return;
+      titulos.forEach(function (h, j) {
+        var cuerpo = document.createElement("div");
+        cuerpo.className = "plegable"; cuerpo.id = "legal-" + k + "-" + j;
+        var n = h.nextElementSibling;
+        while (n && n.tagName !== "H3") { var sig = n.nextElementSibling; cuerpo.appendChild(n); n = sig; }
+        h.parentNode.insertBefore(cuerpo, h.nextSibling);
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "plegar-titulo"; b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", cuerpo.id);
+        while (h.firstChild) b.appendChild(h.firstChild);
+        h.appendChild(b);
+        plegable(b, cuerpo, null);
+      });
+    });
   }
 
   var params = new URLSearchParams(location.search);
@@ -354,6 +449,7 @@
   var rejilla = document.querySelector(".criterio-rejilla[data-por-pagina]");
   if (rejilla) {
     var porPagina = +rejilla.getAttribute("data-por-pagina") || 12;
+    if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) porPagina = Math.min(porPagina, 6);   // v1.20: menos texto en el celular
     var mostrar = porPagina, filtro = "";
     var botonMas = document.getElementById("criterio-mas");
     var tarjetas = Array.prototype.slice.call(rejilla.querySelectorAll(".entrega"));
