@@ -855,3 +855,32 @@ a.dato-flotante:hover { border-color: var(--cian); color: var(--texto-2); }
   .manifiesto-frase .mw { color: var(--grafito); }
 }
 .seccion.manifiesto { padding-top: clamp(64px, 8vw, 112px) !important; padding-bottom: clamp(56px, 7vw, 96px); }
+
+/* ---------- v1.19 (30/09/2026): el movimiento de Inicio en todas las pestañas ----------
+   Pedido de Ernesto: el mismo movimiento de la portada en Empresas, Profesionales y todas las demás.
+   - Luz y halo animados también en la primera sección de las páginas que no usan .portada (Empresas, Guías, Contacto,
+     guías y calculadoras), con altura fija para que no crezcan con páginas largas.
+   - Datos flotantes en línea para las páginas sin tarjeta lateral.
+   - Todo se detiene con prefers-reduced-motion. */
+.portada { isolation: isolate; }
+main > .seccion:first-child { position: relative; overflow: hidden; isolation: isolate; }
+main > .seccion:first-child::before {
+  content: ""; position: absolute; right: -12%; top: -180px; width: 58%; height: 760px; z-index: -1; pointer-events: none;
+  background: linear-gradient(160deg, var(--cian-suave), #fff 70%);
+  transform: skewX(-14deg); animation: hrtic-luz 14s ease-in-out infinite alternate;
+}
+main > .seccion:first-child::after {
+  content: ""; position: absolute; width: 380px; height: 380px; right: 16%; top: 40px; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(0, 157, 222, .14), rgba(0, 157, 222, 0) 68%);
+  animation: hrtic-halo 9s ease-in-out infinite alternate;
+}
+@media (max-width: 880px) { main > .seccion:first-child::before { width: 100%; right: -40%; } main > .seccion:first-child::after { right: -12%; } }
+span.dato-flotante { cursor: default; }
+.datos-flotantes.en-linea { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.datos-flotantes.en-linea li { display: flex; }
+.datos-flotantes.en-linea .dato-flotante { position: static; }
+.hero-dos .portada-lado { align-self: center; margin: 44px 0 72px; }
+@media (max-width: 880px) { .hero-dos .portada-lado { margin: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  main > .seccion:first-child::before, main > .seccion:first-child::after { animation: none !important; }
+}
