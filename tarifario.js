@@ -54,8 +54,9 @@
   ];
   var MICRO = { minimo: 149, hasta: 10 }; // solo Asistencia y hasta 10 trabajadores
   var IGV = 0.18;
-  // Implementación (pago único, S/ sin IGV): sin costo si el cliente paga el año adelantado.
-  var IMPLEMENTACION = { monto: 490, anual: 0 };
+  // Implementación (pago único, S/ sin IGV): sin costo si el cliente paga el año adelantado. v1.29: plazo de hasta 15 días hábiles desde que
+  // el cliente entrega la información completa (Condiciones Generales, cláusula 3.2); lo no previsto que pida, con plazo y costo por acuerdo escrito.
+  var IMPLEMENTACION = { monto: 490, anual: 0, dias_habiles: 15 };
   // Plan Archivo (S/ al año, sin IGV) al terminar el servicio: general = consulta de solo lectura hasta 5 años después del último registro
   // (D.S. 004-2006-TR, art. 6; D.S. 001-98-TR, art. 21), por tramo de trabajadores; SST = custodia de los registros de SST hasta su último
   // plazo (D.S. 005-2012-TR, art. 35: 10 o 20 años).
@@ -76,7 +77,7 @@
   var COSTOS = { atencion_mes: 40, ia_mes: 4, cobranza: 0.01, implementacion: 200, baja_mes: 0.03 };
   var MARGEN_MIN = 0.65;   // margen de contribución mínimo del primer año para aceptar un precio especial por debajo del tarifario
   var INCLUIDO = [
-    "Acompañamiento de HRTIC en la configuración y la carga del personal",
+    "Implementación en hasta 15 días hábiles desde que entregas la información completa: configuración, carga del personal e inducción de los usuarios",
     "Agente de cumplimiento: 30 consultas al mes (paquete adicional de 50 consultas por S/ 15 + IGV)",
     "Importador de datos de otros sistemas (Excel, CSV, T-Registro y PLAME)",
     "Boletas de otro sistema con firma y constancia (con Personas o Planilla)",
@@ -185,7 +186,7 @@
   function desde() { return { sin_igv: MICRO.minimo, con_igv: r2(MICRO.minimo * (1 + IGV)) }; }
   function soles(x) { return "S/ " + Number(x).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  g.HRTarifario = { VERSION: "2026-10-08.2", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
+  g.HRTarifario = { VERSION: "2026-10-08.3", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
     MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo,
     cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles,
     MODALIDADES: MODALIDADES, COSTOS: COSTOS, MARGEN_MIN: MARGEN_MIN, modalidad: modalidad, margen: margen, propuesta: propuesta, minimoConMargen: minimoConMargen, descuentoAplicable: descuentoAplicable };
