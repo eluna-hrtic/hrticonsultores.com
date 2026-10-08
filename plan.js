@@ -1,5 +1,7 @@
-/* HRTIC · «Arma tu plan» (web v1.19, 06/10/2026). Usa tarifario.js, la misma fuente de precios de la plataforma (/admin).
-   Todo se calcula en el navegador: no se envía ni se guarda nada. El botón de WhatsApp lleva el plan elegido. */
+/* HRTIC · «Arma tu plan» (web v1.19, 06/10/2026; v1.28, 08/10/2026: solo precios «desde» y descuentos por forma de pago). Usa tarifario.js, la
+   misma fuente de precios de la plataforma (/admin). Todo se calcula en el navegador: no se envía ni se guarda nada. El botón de WhatsApp lleva el
+   plan elegido. Decisión de Ernesto (08/10/2026): para algunas empresas se propone un precio distinto o mayor, así que la web muestra el precio
+   piso («desde») y no un total cerrado. */
 (function () {
   "use strict";
   var T = window.HRTarifario, f = document.getElementById("f-plan");
@@ -32,28 +34,25 @@
     var num = Math.floor(Number(n.value)), t = T.tramoDe(num >= 1 ? num : 1);
     caja.querySelectorAll(".plan-modulo").forEach(function (l) {
       var m = T.MODULOS.filter(function (x) { return x.k === l.getAttribute("data-k"); })[0], v = m.p[t];
-      l.querySelector(".pm-precio").textContent = v == null ? "desde 51" : soles(v);
+      l.querySelector(".pm-precio").textContent = v == null ? "desde 51 trab." : "desde " + soles(v);
       l.classList.toggle("no-disponible", v == null);
     });
-    var r = T.cotizar(elegidos(), n.value), tb = $("s-plan-tabla").tBodies[0];
-    tb.innerHTML = "";
+    var r = T.cotizar(elegidos(), n.value);
     if (!r.ok) {
       $("s-plan-nombre").textContent = "Su plan"; $("s-plan-total").textContent = "—"; $("s-plan-desglose").textContent = r.error; $("s-plan-regla").textContent = "";
       return;
     }
     $("s-plan-nombre").textContent = r.plan + " · " + r.n + (r.n === 1 ? " trabajador" : " trabajadores");
-    $("s-plan-total").textContent = soles(r.total);
-    $("s-plan-desglose").textContent = "Al mes, precio total con IGV: " + soles(r.subtotal) + " + IGV " + soles(r.igv) + ". Equivale a " + soles(conIgv(r.efectivo_por_trabajador)) + " por trabajador con IGV.";
-    r.detalle.forEach(function (x) {
-      var tr = document.createElement("tr");
-      [x.n, soles(x.por_trabajador), soles(x.subtotal)].forEach(function (v, i) { var td = document.createElement("td"); td.textContent = v; if (i) td.className = "num"; tr.appendChild(td); });
-      tb.appendChild(tr);
-    });
-    var regla = r.regla === "minimo" ? (r.micro ? "Se aplica el monto mínimo de microempresa: " + soles(conIgv(r.minimo)) + " con IGV." : "Se aplica el monto mínimo de su plan: " + soles(conIgv(r.minimo)) + " con IGV.")
-      : r.regla === "piso" ? "La factura no baja al crecer: paga lo mismo que con " + r.piso_de + " trabajadores." : "Montos de la tabla sin IGV; el total incluye IGV.";
+    $("s-plan-total").textContent = "Desde " + soles(r.total);
+    $("s-plan-desglose").textContent = "Al mes, con IGV. Es el precio de referencia: la propuesta final se ajusta a su operación (sedes, turnos e integraciones).";
+    var an = T.propuesta ? T.propuesta(elegidos(), n.value, "anual") : null, fp = $("s-plan-formas");
+    if (fp) fp.textContent = an && an.ok ? "Con pago anual adelantado: desde " + soles(an.cuota_con_igv) + " al mes" + (an.descuento ? " (" + Math.round(an.descuento * 100) + " % menos)" : "") +
+      " e implementación sin costo. También hay descuento con pago semestral adelantado o con permanencia de 6 meses." : "";
+    var regla = r.regla === "minimo" ? (r.micro ? "Incluye el monto mínimo de microempresa." : "Incluye el monto mínimo de su plan.")
+      : r.regla === "piso" ? "La factura no baja al crecer: paga lo mismo que con " + r.piso_de + " trabajadores." : "Precio por trabajador según el tramo; el total incluye IGV.";
     $("s-plan-regla").textContent = regla + (r.avisos.length ? " " + r.avisos.join(" ") : "");
     var texto = "Hola, vengo de la web de HRTIC (Arma tu plan" + origen() + "). Quiero una demostración de la plataforma. Mi plan: " +
-      r.detalle.map(function (x) { return x.n; }).join(", ") + ", para " + r.n + (r.n === 1 ? " trabajador" : " trabajadores") + ". Precio de la web: " + soles(r.total) + " al mes con IGV.";
+      r.detalle.map(function (x) { return x.n; }).join(", ") + ", para " + r.n + (r.n === 1 ? " trabajador" : " trabajadores") + ". Precio de referencia de la web: desde " + soles(r.total) + " al mes con IGV.";
     $("s-plan-wsp").href = "https://wa.me/" + WSP + "?text=" + encodeURIComponent(texto);
   }
   f.addEventListener("input", calcular);
