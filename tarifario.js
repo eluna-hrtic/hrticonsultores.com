@@ -1,9 +1,12 @@
-/* HRTIC · Tarifario «Arma tu plan» (v1.19, 06/10/2026). Fuente única de precios: la usa /admin y se copia tal cual a la web
+/* HRTIC · Tarifario «Arma tu plan» (v1.27, 08/10/2026). Fuente única de precios: la usa /admin y se copia tal cual a la web
  * (hrticonsultores.com/assets/js/tarifario.js). Montos en S/ por trabajador al mes, SIN IGV.
- * Derivado del tarifario por paquetes del 03/10/2026 (35 % debajo de la mediana del mercado): el precio de cada módulo es la
- * diferencia entre un paquete y el anterior, así que Asistencia + los módulos de un paquete = el precio exacto de ese paquete.
- * Decisiones de Ernesto (06/10/2026): Asistencia siempre incluida; mínimo S/ 170, salvo micro (S/ 99 con solo Asistencia y hasta
- * 10 trabajadores); mínimo proporcional en planes mixtos; la factura nunca baja al pasar de tramo. */
+ * Estructura del 06/10/2026 (v1.19): el precio de cada módulo es la diferencia entre un paquete y el anterior, así que Asistencia + los
+ * módulos de un paquete = el precio exacto de ese paquete; Asistencia siempre incluida; mínimo proporcional en planes mixtos; la factura
+ * nunca baja al pasar de tramo.
+ * Decisión de Ernesto del 08/10/2026 (opción B): precio por trabajador 20 % debajo de la mediana del mercado (antes 35 %: cada módulo
+ * × 0,80/0,65, redondeado a 0,10; Personas de 51 a 100 queda en 5,70 para que el paquete no suba al pasar de 21-50 a 51-100); mínimo
+ * mensual S/ 290 (antes 170) y microempresa S/ 149 (antes 99, solo Asistencia y hasta 10 trabajadores). Implementación S/ 490 + IGV
+ * (pago único), sin costo con pago anual adelantado. Plan Archivo general por tramo al año y Plan Archivo SST S/ 180 al año. */
 (function (g) {
   "use strict";
   var TRAMOS = [ // [desde, hasta]
@@ -12,47 +15,53 @@
   var ETIQUETAS_TRAMO = ["1 a 20", "21 a 50", "51 a 100", "101 a 200", "201 a 500", "501 a más"];
   // Precio por trabajador al mes en cada tramo (null = no disponible en ese tramo). Mínimo: lo que suma a la factura mínima.
   var MODULOS = [
-    { k: "asistencia", n: "Control de asistencia", grupo: "Base", base: true, minimo: 170,
+    { k: "asistencia", n: "Control de asistencia", grupo: "Base", base: true, minimo: 290,
       d: "Marcación por celular, equipo fijo, QR y rostro; horas extra, turnos, permisos, tableros y reportes",
-      p: [7.90, 4.50, 3.80, 3.40, 3.20, 2.90] },
+      p: [9.70, 5.50, 4.70, 4.20, 3.90, 3.60] },
     { k: "personas", n: "Administración de personas", grupo: "Personas", minimo: 0,
       d: "Legajo digital, contratos y adendas con firma electrónica, disciplina, solicitudes, políticas con acuse y documentos ISO",
-      p: [5.10, 4.00, 4.70, 4.70, 4.40, 4.20] },
+      p: [6.30, 4.90, 5.70, 5.80, 5.40, 5.20] },
     { k: "planilla", n: "Planilla y boletas", grupo: "Planilla", minimo: 0,
       d: "Planilla, gratificación, CTS, liquidación, quinta, boletas firmadas y archivos de la PLAME",
-      p: [8.10, 3.70, 3.70, 2.90, 2.70, 2.40] },
+      p: [10.00, 4.60, 4.60, 3.60, 3.30, 3.00] },
     { k: "seleccion", n: "Selección", grupo: "Talento", minimo: 76,
       d: "Vacantes con postulación desde el celular, filtros, pruebas, entrevista por competencias y ranking",
-      p: [4.60, 2.80, 1.60, 1.50, 1.40, 1.30] },
+      p: [5.70, 3.40, 2.00, 1.80, 1.70, 1.60] },
     { k: "induccion", n: "Inducción", grupo: "Talento", minimo: 28,
       d: "Plan de 12 actividades con base legal y verificación automática",
-      p: [1.70, 1.10, 0.70, 0.50, 0.50, 0.50] },
+      p: [2.10, 1.40, 0.90, 0.60, 0.60, 0.60] },
     { k: "desempeno", n: "Desempeño (Nine Box)", grupo: "Talento", minimo: 76,
       d: "Objetivos, evaluación 90° a 360°, apuntes de incidentes, actas 1:1, Nine Box y calibración",
-      p: [4.60, 2.80, 1.60, 1.50, 1.40, 1.30] },
+      p: [5.70, 3.40, 2.00, 1.80, 1.70, 1.60] },
     { k: "cumplimiento", n: "Cumplimiento laboral", grupo: "Integral", minimo: 133,
       d: "Autodiagnóstico de 17 obligaciones con evidencia, semáforo, plan de acción y multa potencial SUNAFIL",
-      p: [2.40, 1.40, 0.90, 0.80, 0.70, 0.70] },
+      p: [3.00, 1.70, 1.10, 1.00, 0.90, 0.90] },
     { k: "clima", n: "Clima y convivencia", grupo: "Integral", minimo: 132,
       d: "Encuesta anónima con eNPS, evaluación anual de hostigamiento, buzón y canal de denuncias",
-      p: [2.30, 1.40, 0.80, 0.70, 0.70, 0.60] },
+      p: [2.80, 1.70, 1.00, 0.90, 0.90, 0.70] },
     { k: "corporativo", n: "Corporativo", grupo: "Corporativo", minimo: 735,
       d: "Varias razones sociales con cupo único, API y webhooks, marca blanca y auditoría anual de cumplimiento (desde 51 trabajadores)",
-      p: [null, null, 1.80, 1.60, 1.50, 1.40] }
+      p: [null, null, 2.20, 2.00, 1.80, 1.70] }
   ];
-  // Paquetes de referencia (03/10/2026): sirven para nombrar el plan y para las pruebas.
+  // Paquetes de referencia (estructura del 03/10/2026, precios del 08/10/2026): sirven para nombrar el plan y para las pruebas.
   var PAQUETES = [
-    { k: "Asistencia", m: ["asistencia"], p: [7.90, 4.50, 3.80, 3.40, 3.20, 2.90], minimo: 170 },
-    { k: "Personas", m: ["asistencia", "personas"], p: [13.00, 8.50, 8.50, 8.10, 7.60, 7.10], minimo: 170 },
-    { k: "Planilla", m: ["asistencia", "personas", "planilla"], p: [21.10, 12.20, 12.20, 11.00, 10.30, 9.50], minimo: 170 },
-    { k: "Talento", m: ["asistencia", "personas", "planilla", "seleccion", "induccion", "desempeno"], p: [32.00, 18.90, 16.10, 14.50, 13.60, 12.60], minimo: 350 },
-    { k: "Integral", m: ["asistencia", "personas", "planilla", "seleccion", "induccion", "desempeno", "cumplimiento", "clima"], p: [36.70, 21.70, 17.80, 16.00, 15.00, 13.90], minimo: 615 },
-    { k: "Corporativo", m: ["asistencia", "personas", "planilla", "seleccion", "induccion", "desempeno", "cumplimiento", "clima", "corporativo"], p: [null, null, 19.60, 17.60, 16.50, 15.30], minimo: 1350 }
+    { k: "Asistencia", m: ["asistencia"], p: [9.70, 5.50, 4.70, 4.20, 3.90, 3.60], minimo: 290 },
+    { k: "Personas", m: ["asistencia", "personas"], p: [16.00, 10.40, 10.40, 10.00, 9.30, 8.80], minimo: 290 },
+    { k: "Planilla", m: ["asistencia", "personas", "planilla"], p: [26.00, 15.00, 15.00, 13.60, 12.60, 11.80], minimo: 290 },
+    { k: "Talento", m: ["asistencia", "personas", "planilla", "seleccion", "induccion", "desempeno"], p: [39.50, 23.20, 19.90, 17.80, 16.60, 15.60], minimo: 470 },
+    { k: "Integral", m: ["asistencia", "personas", "planilla", "seleccion", "induccion", "desempeno", "cumplimiento", "clima"], p: [45.30, 26.60, 22.00, 19.70, 18.40, 17.20], minimo: 735 },
+    { k: "Corporativo", m: ["asistencia", "personas", "planilla", "seleccion", "induccion", "desempeno", "cumplimiento", "clima", "corporativo"], p: [null, null, 24.20, 21.70, 20.20, 18.90], minimo: 1470 }
   ];
-  var MICRO = { minimo: 99, hasta: 10 }; // solo Asistencia y hasta 10 trabajadores
+  var MICRO = { minimo: 149, hasta: 10 }; // solo Asistencia y hasta 10 trabajadores
   var IGV = 0.18;
+  // Implementación (pago único, S/ sin IGV): sin costo si el cliente paga el año adelantado.
+  var IMPLEMENTACION = { monto: 490, anual: 0 };
+  // Plan Archivo (S/ al año, sin IGV) al terminar el servicio: general = consulta de solo lectura hasta 5 años después del último registro
+  // (D.S. 004-2006-TR, art. 6; D.S. 001-98-TR, art. 21), por tramo de trabajadores; SST = custodia de los registros de SST hasta su último
+  // plazo (D.S. 005-2012-TR, art. 35: 10 o 20 años).
+  var PLAN_ARCHIVO = { general: [[50, 360], [200, 720], [Infinity, 1200]], sst: 180 };
   var INCLUIDO = [
-    "Implementación asistida por HRTIC",
+    "Acompañamiento de HRTIC en la configuración y la carga del personal",
     "Agente de cumplimiento: 30 consultas al mes (paquete adicional de 50 consultas por S/ 15 + IGV)",
     "Importador de datos de otros sistemas (Excel, CSV, T-Registro y PLAME)",
     "Boletas de otro sistema con firma y constancia (con Personas o Planilla)",
@@ -98,10 +107,17 @@
       subtotal: r2(sub), igv: igv, total: r2(sub + igv), efectivo_por_trabajador: r2(sub / n), avisos: avisos
     };
   }
+  /** Plan Archivo general (S/ al año, sin IGV) según el número de trabajadores al terminar el servicio. */
+  function planArchivo(n) {
+    n = Math.max(1, Math.floor(Number(n)) || 1);
+    for (var i = 0; i < PLAN_ARCHIVO.general.length; i++) if (n <= PLAN_ARCHIVO.general[i][0]) return PLAN_ARCHIVO.general[i][1];
+    return PLAN_ARCHIVO.general[PLAN_ARCHIVO.general.length - 1][1];
+  }
   /** Precio «desde» (con y sin IGV) para la web. */
   function desde() { return { sin_igv: MICRO.minimo, con_igv: r2(MICRO.minimo * (1 + IGV)) }; }
   function soles(x) { return "S/ " + Number(x).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  g.HRTarifario = { VERSION: "2026-10-06", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
-    MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles };
+  g.HRTarifario = { VERSION: "2026-10-08", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
+    MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo,
+    cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles };
 })(typeof window !== "undefined" ? window : globalThis);
