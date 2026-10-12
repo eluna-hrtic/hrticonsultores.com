@@ -1,4 +1,4 @@
-/* HRTIC · sitio web v1.20 · comportamiento mínimo, sin dependencias (movimiento con prefers-reduced-motion desde el 30/09/2026) */
+/* HRTIC · sitio web v1.32 (cupos de la promoción) · v1.20 · comportamiento mínimo, sin dependencias (movimiento con prefers-reduced-motion desde el 30/09/2026) */
 (function () {
   "use strict";
 
@@ -544,6 +544,20 @@
         mostrar("No pudimos procesar el enlace", "<p>Vuelve a abrirlo en unos minutos. Si el problema sigue, escríbenos a <a href=\"mailto:eluna@hrticonsultores.com\">eluna@hrticonsultores.com</a> y lo resolvemos a mano.</p>");
       });
   })();
+
+  // v1.32: promoción con cupos (parciales/cupos.html). Cuenta los días que faltan en hora de Lima (UTC-5, sin horario de
+  // verano) y oculta el bloque al vencer, aunque el sitio no se vuelva a construir.
+  document.querySelectorAll("[data-vence]").forEach(function (b) {
+    var vence = Date.parse(b.getAttribute("data-vence") + "T00:00:00Z");
+    var hoy = Date.parse(new Date(Date.now() - 5 * 3600000).toISOString().slice(0, 10) + "T00:00:00Z");
+    if (isNaN(vence)) return;
+    var dias = Math.round((vence - hoy) / 86400000);
+    if (dias < 0) { b.hidden = true; return; }
+    var caja = b.querySelector("[data-dias-caja]"), dd = b.querySelector("[data-dias]");
+    if (!caja || !dd) return;
+    dd.textContent = dias === 0 ? "Hoy es el último día" : dias === 1 ? "1 día" : dias + " días";
+    caja.hidden = false;
+  });
 
   // Libro de Reclamaciones
   var fl = document.getElementById("form-libro");

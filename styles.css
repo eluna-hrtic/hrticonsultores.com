@@ -1015,3 +1015,38 @@ main > :first-child h1 .script { animation: hrtic-escribe 1.2s .6s cubic-bezier(
 }
 @media (min-width: 1181px) { .marca { flex: none; } .marca span { max-width: 132px; } .menu { gap: 0; } .menu a { padding: 8px 8px; } .menu .boton { margin-left: 6px; padding-left: 16px; padding-right: 16px; } }
 @media (min-width: 1181px) and (max-width: 1300px) { .menu a { padding: 8px 6px; font-size: .9rem; } }
+
+/* v1.32 (10/10/2026): promoción con cupos (parciales/cupos.html) y agenda de demostraciones (demo.html) */
+.cupos { padding: 8px 0 40px; }
+.cupos-caja { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px 32px; align-items: center; background: #fff; border: 1px solid var(--borde); border-left: 4px solid var(--cian); border-radius: var(--radio); padding: 26px 28px; box-shadow: var(--sombra); }
+.cupos-texto h2 { font-size: clamp(1.2rem, 2.4vw, 1.5rem); line-height: 1.25; margin: 0 0 8px; }
+.cupos-texto p { margin: 0; color: var(--texto-2); font-size: .95rem; }
+.cupos-texto .kicker { margin-bottom: 8px; }
+.cupos-datos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; }
+.cupos-datos > div { background: var(--fondo-2); border-radius: var(--radio-sm); padding: 12px 14px; }
+.cupos-datos dt { font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--texto-3); }
+.cupos-datos dd { margin: 2px 0 0; font-weight: 700; font-size: 1.02rem; color: var(--grafito); }
+.cupos-nota { grid-column: 1 / -1; margin: 0; font-size: .82rem; color: var(--texto-3); }
+.agenda { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 24px; align-items: start; }
+.agenda-titulo { font-size: 1rem; margin: 0 0 14px; }
+.agenda-dias { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
+.agenda-dia, .agenda-hora { font: inherit; color: var(--grafito); background: #fff; border: 1px solid var(--borde); border-radius: var(--radio-sm); cursor: pointer; }
+.agenda-dia { flex: none; min-width: 70px; padding: 8px 10px; text-align: center; line-height: 1.25; }
+.agenda-dia small { display: block; font-size: .74rem; color: var(--texto-3); text-transform: capitalize; }
+.agenda-dia strong { display: block; font-size: 1.05rem; }
+.agenda-horas { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin: 14px 0 12px; }
+.agenda-hora { padding: 10px 8px; font-weight: 600; }
+.agenda-dia:hover, .agenda-hora:hover { border-color: var(--cian); }
+.agenda-dia[aria-pressed="true"], .agenda-hora[aria-pressed="true"] { background: var(--grafito); border-color: var(--grafito); color: #fff; }
+.agenda-dia[aria-pressed="true"] small { color: #fff; }
+.agenda-elegido { margin: 0; padding: 12px 14px; border-radius: var(--radio-sm); background: var(--fondo-2); color: var(--texto-2); font-size: .93rem; }
+.agenda-elegido.listo { background: var(--cian-suave); color: var(--grafito); font-weight: 600; }
+.agenda-otro { margin-top: 18px; }
+.agenda-confirmada { border-top: 4px solid var(--ok); }
+.agenda-confirmada h3 { margin: 0 0 8px; }
+.agenda-confirmada p { color: var(--texto-2); margin: 0 0 8px; }
+.pasos-tres { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 880px) { .cupos-caja, .agenda { grid-template-columns: minmax(0, 1fr); } .pasos-tres { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .cupos-caja { padding: 22px 18px; } .cupos-datos { grid-template-columns: 1fr 1fr; } .cupos-datos > div:nth-child(3) { grid-column: 1 / -1; } }
+.calc-botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.calc-botones .boton { margin-top: 0; }

@@ -54,6 +54,10 @@
     var texto = "Hola, vengo de la web de HRTIC (Arma tu plan" + origen() + "). Quiero una demostración de la plataforma. Mi plan: " +
       r.detalle.map(function (x) { return x.n; }).join(", ") + ", para " + r.n + (r.n === 1 ? " trabajador" : " trabajadores") + ". Precio de referencia de la web: desde " + soles(r.total) + " al mes con IGV.";
     $("s-plan-wsp").href = "https://wa.me/" + WSP + "?text=" + encodeURIComponent(texto);
+    // v1.32: el botón de agendar lleva el plan a demo.html (queda en la reserva y en la invitación).
+    var demo = $("s-plan-demo");
+    if (demo) demo.href = "demo.html?plan=" + encodeURIComponent(r.detalle.map(function (x) { return x.n; }).join(", ") + ", para " + r.n +
+      (r.n === 1 ? " trabajador" : " trabajadores") + " · desde " + soles(r.total) + " al mes con IGV") + "#agendar";
   }
   f.addEventListener("input", calcular);
   f.addEventListener("change", calcular);

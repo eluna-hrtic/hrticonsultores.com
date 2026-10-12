@@ -1,0 +1,161 @@
+/* HRTIC · agenda de demostraciones de la Plataforma HRTIC (v1.32 de la web, 10/10/2026).
+   Pide los horarios libres al servicio de formularios v1.11 (GET ?accion=demo_horarios) y envía la reserva (formulario 'demo').
+   El servicio vuelve a revisar el calendario antes de crear la cita: si el horario se ocupó, responde «ocupado» y aquí se
+   recargan los horarios. Sin servicio o con error, la página ofrece WhatsApp. No usa cookies. */
+(function () {
+  "use strict";
+  var form = document.getElementById("form-demo");
+  if (!form) return;
+  var endpoint = form.getAttribute("data-endpoint") || "";
+  var $ = function (id) { return document.getElementById(id); };
+  var cajaDias = $("d-dias"), cajaHoras = $("d-horas"), estado = $("d-estado"), elegido = $("d-elegido");
+  var campoInicio = $("d-inicio"), campoPlan = $("d-plan");
+  var WSP = "https://wa.me/51942927868?text=" + encodeURIComponent("Hola, vengo de la web de HRTIC. Quiero agendar una demostración de la plataforma.");
+  var horarios = [], diaActual = "", horaElegida = null;
+
+  var params = new URLSearchParams(location.search);
+  var plan = (params.get("plan") || "").slice(0, 200);
+  if (plan) campoPlan.value = plan;
+
+  function origen() {
+    try { return JSON.parse(sessionStorage.getItem("hrtic_origen") || "{}"); } catch (e) { return {}; }
+  }
+  function evento(nombre, titulo) {
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: nombre, title: titulo, event: true }); } catch (e) { /* sin medición */ }
+  }
+  function aviso(tipo, texto) {
+    var a = form.querySelector(".aviso");
+    a.className = "aviso aviso-" + tipo;
+    a.textContent = texto;
+  }
+  function sinAgenda(texto) {
+    cajaDias.innerHTML = ""; cajaHoras.innerHTML = "";
+    estado.innerHTML = "";
+    estado.appendChild(document.createTextNode(texto + " "));
+    var a = document.createElement("a");
+    a.href = WSP; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Escríbanos por WhatsApp y coordinamos el horario.";
+    estado.appendChild(a);
+  }
+  function boton(clase, html, etiqueta) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = clase; b.innerHTML = html; b.setAttribute("aria-pressed", "false");
+    if (etiqueta) b.setAttribute("aria-label", etiqueta);
+    return b;
+  }
+  function partesDia(texto) { // «martes 13/10/2026»
+    var p = texto.split(" "), f = (p[1] || "").split("/");
+    return { semana: p[0].slice(0, 3), num: f[0] + "/" + f[1], largo: texto };
+  }
+  function elegirHora(h, b) {
+    horaElegida = h;
+    campoInicio.value = h.inicio;
+    cajaHoras.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    elegido.textContent = "Demostración el " + h.dia + " a las " + h.hora + " (hora de Lima), 20 minutos por Google Meet.";
+    elegido.classList.add("listo");
+  }
+  function mostrarDia(fecha) {
+    diaActual = fecha;
+    cajaDias.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x.getAttribute("data-fecha") === fecha ? "true" : "false"); });
+    cajaHoras.innerHTML = "";
+    horarios.filter(function (h) { return h.fecha === fecha; }).forEach(function (h) {
+      var b = boton("agenda-hora", h.hora, h.dia + " a las " + h.hora);
+      if (horaElegida && horaElegida.inicio === h.inicio) b.setAttribute("aria-pressed", "true");
+      b.addEventListener("click", function () { elegirHora(h, b); });
+      cajaHoras.appendChild(b);
+    });
+  }
+  function pintar() {
+    cajaDias.innerHTML = "";
+    var dias = [];
+    horarios.forEach(function (h) { if (dias.indexOf(h.fecha) === -1) dias.push(h.fecha); });
+    if (!dias.length) { sinAgenda("No quedan horarios libres en los próximos días."); return; }
+    dias.forEach(function (fecha) {
+      var h = horarios.filter(function (x) { return x.fecha === fecha; });
+      var p = partesDia(h[0].dia);
+      var b = boton("agenda-dia", "<small>" + p.semana + "</small><strong>" + p.num + "</strong>",
+                    p.largo + ", " + h.length + (h.length === 1 ? " horario libre" : " horarios libres"));
+      b.setAttribute("data-fecha", fecha);
+      b.addEventListener("click", function () { mostrarDia(fecha); });
+      cajaDias.appendChild(b);
+    });
+    estado.textContent = horarios.length + " horarios libres en los próximos " + dias.length + " días hábiles.";
+    mostrarDia(dias.indexOf(diaActual) !== -1 ? diaActual : dias[0]);
+  }
+  function cargar() {
+    if (!endpoint) { sinAgenda("La agenda en línea todavía no está conectada."); return Promise.resolve(); }
+    estado.textContent = "Cargando los horarios libres…";
+    return fetch(endpoint + (endpoint.indexOf("?") === -1 ? "?" : "&") + "accion=demo_horarios")
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || !res.ok || !Array.isArray(res.horarios)) throw new Error("sin horarios");
+        horarios = res.horarios;
+        if (horaElegida && !horarios.some(function (h) { return h.inicio === horaElegida.inicio; })) {
+          horaElegida = null; campoInicio.value = "";
+          elegido.textContent = "Primero elija un día y una hora."; elegido.classList.remove("listo");
+        }
+        pintar();
+      })
+      .catch(function () { sinAgenda("No pudimos cargar la agenda en este momento."); });
+  }
+
+  function validar() {
+    var primero = null;
+    form.querySelectorAll("[required]").forEach(function (c) {
+      var v = c.type === "checkbox" ? c.checked : c.value.trim();
+      var bien = c.type === "checkbox" ? v : v !== "" &&
+        (c.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) &&
+        (c.name !== "telefono" || v.replace(/\D/g, "").length >= 9);
+      c.setAttribute("aria-invalid", bien ? "false" : "true");
+      if (!bien && !primero) primero = c;
+    });
+    if (primero) { primero.focus(); return false; }
+    return true;
+  }
+  var MENSAJES = {
+    ocupado: "Ese horario se acaba de ocupar. Elija otro: ya actualizamos la agenda.",
+    limite: "Ya tiene demostraciones agendadas con este correo. Para cambiar la fecha, escríbanos por WhatsApp al 942 927 868.",
+    telefono: "Revise el celular: debe tener al menos 9 dígitos.",
+    consentimiento: "Marque la autorización para tratar sus datos.",
+    horario: "Elija un día y una hora."
+  };
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!campoInicio.value) { aviso("error", "Primero elija un día y una hora."); cajaDias.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    if (!validar()) { aviso("error", "Revise los campos obligatorios."); return; }
+    if (!endpoint) { aviso("error", "La agenda en línea todavía no está conectada. Escríbanos por WhatsApp al 942 927 868."); return; }
+    var d = {};
+    new FormData(form).forEach(function (v, k) { if (typeof v === "string") d[k] = v.trim(); });
+    var o = origen();
+    d.formulario = "demo"; d.pagina = location.pathname; d.enviado = new Date().toISOString();
+    d.fuente = o.fuente || ""; d.entrada = o.entrada || "";
+    var btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    aviso("info", "Agendando…");
+    fetch(endpoint, { method: "POST", body: JSON.stringify(d) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.ok && res.numero) {
+          evento("envio-demo", "Demostración agendada");
+          var caja = document.createElement("div");
+          caja.className = "tarjeta agenda-confirmada";
+          caja.setAttribute("tabindex", "-1");
+          var t = document.createElement("h3"); t.textContent = "Demostración agendada";
+          var p1 = document.createElement("p"); p1.textContent = "Le esperamos el " + res.cuando + ". Su número es " + res.numero + ".";
+          var p2 = document.createElement("p"); p2.textContent = "Le enviamos la invitación de Google Calendar con el enlace de Meet a " + d.correo +
+            ". Si no la ve en unos minutos, revise la carpeta de correo no deseado.";
+          caja.appendChild(t); caja.appendChild(p1); caja.appendChild(p2);
+          form.replaceWith(caja);
+          caja.focus();
+          return;
+        }
+        var err = res && res.error;
+        aviso("error", MENSAJES[err] || "No se pudo agendar. Escríbanos por WhatsApp al 942 927 868.");
+        if (err === "ocupado") cargar();
+      })
+      .catch(function () { aviso("error", "No se pudo agendar. Escríbanos por WhatsApp al 942 927 868."); })
+      .finally(function () { btn.disabled = false; });
+  });
+
+  cargar();
+})();
