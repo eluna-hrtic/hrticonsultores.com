@@ -374,7 +374,9 @@
      - Vida Ley desde el primer día para todo trabajador del sector privado, cualquiera sea su régimen, también la MYPE (D. Leg. 688,
        art. 1, modificado por el D.U. 044-2019; D.S. 009-2020-TR, art. 2; corregido el 24/09/2026) y SCTR en actividades de riesgo
        (Ley 26790, art. 19): la prima la fija la aseguradora; se suma solo si se ingresa su tasa.
-     - Las vacaciones se pagan dentro de las 12 remuneraciones: no son un costo adicional salvo que se cubra al trabajador.
+     - Vacaciones (v1.7, 12/10/2026, orden de Ernesto): se suman devengadas mes a mes, 1/12 de la remuneración computable por mes
+       (30 días al año en el régimen general; 15 en la pequeña y la microempresa). El descanso se paga dentro de las 12 remuneraciones;
+       esta fila es el costo de cubrir el puesto ese mes (D. Leg. 713, art. 10; TUO D.S. 013-2013-PRODUCE, art. 55).
      No incluye utilidades, horas extras, movilidad ni otros conceptos variables. */
   var SIS_MICRO = 15;
   function costoLaboral(d) {
@@ -390,6 +392,9 @@
     var remAnual = 12 * rc;
     filas.push({ id: "rem", nombre: "12 remuneraciones", monto: r2(remAnual),
                  detalle: soles(sueldo) + (af ? " + asignación familiar " + soles(af) + " (Ley N.º 25129)" : "") + " × 12. Incluyen el mes de vacaciones (" + (reg === "general" ? "30" : "15") + " días; " + (reg === "general" ? "D. Leg. N.º 713" : "TUO D.S. N.º 013-2013-PRODUCE, art. 55") + ")." });
+    var vacDias = reg === "general" ? 30 : 15, vac = rc * vacDias / 30;   // al año: 30 días = una remuneración (1/12 al mes); 15 días = media
+    filas.push({ id: "vac", nombre: "Vacaciones devengadas (" + vacDias + " días al año)", monto: r2(vac),
+                 detalle: soles(r2(vac / 12)) + " al mes devengados (" + vacDias + " días al año = " + soles(r2(vac)) + "). El descanso se paga dentro de las 12 remuneraciones; esta fila es lo que cuesta cubrir el puesto durante ese descanso, sin sumar los aportes de quien cubre (" + (reg === "general" ? "D. Leg. N.º 713, art. 10" : "TUO D.S. N.º 013-2013-PRODUCE, art. 55") + ")." });
     var grat = 0, bonif = 0, cts = 0;
     if (reg === "general") {
       grat = 2 * rc;
