@@ -1,7 +1,7 @@
 /* HRTIC · agenda de demostraciones de la Plataforma HRTIC (v1.32 de la web, 10/10/2026).
-   Pide los horarios libres al servicio de formularios v1.11 (GET ?accion=demo_horarios) y envía la reserva (formulario 'demo').
-   El servicio vuelve a revisar el calendario antes de crear la cita: si el horario se ocupó, responde «ocupado» y aquí se
-   recargan los horarios. Sin servicio o con error, la página ofrece WhatsApp. No usa cookies. */
+   Pide los horarios libres al servicio de formularios v1.11 (GET ?accion=demo_horarios) y envía la SOLICITUD (formulario 'demo').
+   El servicio vuelve a revisar el calendario y aparta el horario; la invitación sale solo cuando Ernesto aprueba (13/10/2026).
+   Si el horario se ocupó, responde «ocupado» y aquí se recargan los horarios. Sin servicio o con error, la página ofrece WhatsApp. No usa cookies. */
 (function () {
   "use strict";
   var form = document.getElementById("form-demo");
@@ -50,7 +50,7 @@
     horaElegida = h;
     campoInicio.value = h.inicio;
     cajaHoras.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
-    elegido.textContent = "Demostración el " + h.dia + " a las " + h.hora + " (hora de Lima), 20 minutos por Google Meet.";
+    elegido.textContent = "Solicitud para el " + h.dia + " a las " + h.hora + " (hora de Lima), 20 minutos por Google Meet.";
     elegido.classList.add("listo");
   }
   function mostrarDia(fecha) {
@@ -113,7 +113,7 @@
   }
   var MENSAJES = {
     ocupado: "Ese horario se acaba de ocupar. Elija otro: ya actualizamos la agenda.",
-    limite: "Ya tiene demostraciones agendadas con este correo. Para cambiar la fecha, escríbanos por WhatsApp al 942 927 868.",
+    limite: "Ya tiene solicitudes o demostraciones pendientes con este correo. Para cambiar la fecha, escríbanos por WhatsApp al 942 927 868.",
     telefono: "Revise el celular: debe tener al menos 9 dígitos.",
     consentimiento: "Marque la autorización para tratar sus datos.",
     horario: "Elija un día y una hora."
@@ -131,29 +131,29 @@
     d.fuente = o.fuente || ""; d.entrada = o.entrada || "";
     var btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
-    aviso("info", "Agendando…");
+    aviso("info", "Enviando su solicitud…");
     fetch(endpoint, { method: "POST", body: JSON.stringify(d) })
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (res && res.ok && res.numero) {
-          evento("envio-demo", "Demostración agendada");
+          evento("envio-demo", "Demostración solicitada");
           var caja = document.createElement("div");
           caja.className = "tarjeta agenda-confirmada";
           caja.setAttribute("tabindex", "-1");
-          var t = document.createElement("h3"); t.textContent = "Demostración agendada";
-          var p1 = document.createElement("p"); p1.textContent = "Le esperamos el " + res.cuando + ". Su número es " + res.numero + ".";
-          var p2 = document.createElement("p"); p2.textContent = "Le enviamos la invitación de Google Calendar con el enlace de Meet a " + d.correo +
-            ". Si no la ve en unos minutos, revise la carpeta de correo no deseado.";
+          var t = document.createElement("h3"); t.textContent = "Solicitud enviada";
+          var p1 = document.createElement("p"); p1.textContent = "Reservamos el " + res.cuando + " para usted. Su número de solicitud es " + res.numero + ".";
+          var p2 = document.createElement("p"); p2.textContent = "Le confirmamos por correo a " + d.correo + ", con el enlace de Google Meet, a más tardar el " + res.limite +
+            ". Si no ve nuestro correo, revise la carpeta de correo no deseado.";
           caja.appendChild(t); caja.appendChild(p1); caja.appendChild(p2);
           form.replaceWith(caja);
           caja.focus();
           return;
         }
         var err = res && res.error;
-        aviso("error", MENSAJES[err] || "No se pudo agendar. Escríbanos por WhatsApp al 942 927 868.");
+        aviso("error", MENSAJES[err] || "No se pudo enviar la solicitud. Escríbanos por WhatsApp al 942 927 868.");
         if (err === "ocupado") cargar();
       })
-      .catch(function () { aviso("error", "No se pudo agendar. Escríbanos por WhatsApp al 942 927 868."); })
+      .catch(function () { aviso("error", "No se pudo enviar la solicitud. Escríbanos por WhatsApp al 942 927 868."); })
       .finally(function () { btn.disabled = false; });
   });
 
