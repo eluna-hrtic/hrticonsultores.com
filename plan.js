@@ -26,6 +26,9 @@
   try {
     var q = new URLSearchParams(location.search), pk = (q.get("paquete") || "").toLowerCase(), nn = parseInt(q.get("trabajadores"), 10);
     T.PAQUETES.forEach(function (p) { if (p.k.toLowerCase() === pk) caja.querySelectorAll("input").forEach(function (c) { c.checked = p.m.indexOf(c.value) >= 0; }); });
+    // v1.33: módulos sueltos desde las páginas por caso de uso (?modulos=clima,desempeno); asistencia va siempre
+    var mq = (q.get("modulos") || "").toLowerCase().split(",").filter(Boolean);
+    if (mq.length) caja.querySelectorAll("input").forEach(function (c) { c.checked = c.disabled || mq.indexOf(c.value) >= 0; });
     if (nn > 0) n.value = String(nn);
   } catch (e) { /* sin parámetros */ }
 

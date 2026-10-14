@@ -37,7 +37,7 @@
       d: "Autodiagnóstico de 17 obligaciones con evidencia, semáforo, plan de acción y multa potencial SUNAFIL",
       p: [3.00, 1.70, 1.10, 1.00, 0.90, 0.90] },
     { k: "clima", n: "Clima y convivencia", grupo: "Integral", minimo: 132,
-      d: "Encuesta anónima con eNPS, evaluación anual de hostigamiento, buzón y canal de denuncias",
+      d: "Encuesta de clima anónima con matriz de prioridades y plan de acción, encuesta de salida, evaluación anual de hostigamiento, buzón y canal de denuncias",
       p: [2.80, 1.70, 1.00, 0.90, 0.90, 0.70] },
     { k: "corporativo", n: "Corporativo", grupo: "Corporativo", minimo: 735,
       d: "Varias razones sociales con cupo único, API y webhooks, marca blanca y auditoría anual de cumplimiento (desde 51 trabajadores)",

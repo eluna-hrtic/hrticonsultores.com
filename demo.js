@@ -1,4 +1,5 @@
-/* HRTIC · agenda de demostraciones de la Plataforma HRTIC (v1.32 de la web, 10/10/2026).
+/* HRTIC · agenda de demostraciones de la Plataforma HRTIC (v1.32 de la web, 10/10/2026; v1.34, 13/10/2026: número exacto de
+   trabajadores, régimen y lo que necesita resolver, para crear la demostración a la medida al aprobar la solicitud).
    Pide los horarios libres al servicio de formularios v1.11 (GET ?accion=demo_horarios) y envía la SOLICITUD (formulario 'demo').
    El servicio vuelve a revisar el calendario y aparta el horario; la invitación sale solo cuando Ernesto aprueba (13/10/2026).
    Si el horario se ocupó, responde «ocupado» y aquí se recargan los horarios. Sin servicio o con error, la página ofrece WhatsApp. No usa cookies. */
@@ -108,6 +109,11 @@
       c.setAttribute("aria-invalid", bien ? "false" : "true");
       if (!bien && !primero) primero = c;
     });
+    var dol = form.querySelectorAll('input[name="dolores"]'), marcados = form.querySelectorAll('input[name="dolores"]:checked').length;
+    var caja = document.getElementById("d-dolores");
+    if (dol.length) { caja.classList.toggle("invalido", !marcados); if (!marcados && !primero) primero = dol[0]; }
+    var n = form.querySelector('[name="trabajadores"]');
+    if (n && n.value && !(+n.value >= 1 && +n.value <= 5000 && Math.floor(+n.value) === +n.value)) { n.setAttribute("aria-invalid", "true"); if (!primero) primero = n; }
     if (primero) { primero.focus(); return false; }
     return true;
   }
@@ -122,10 +128,11 @@
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     if (!campoInicio.value) { aviso("error", "Primero elija un día y una hora."); cajaDias.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
-    if (!validar()) { aviso("error", "Revise los campos obligatorios."); return; }
+    if (!validar()) { aviso("error", form.querySelector('input[name="dolores"]:checked') ? "Revise los campos obligatorios." : "Revise los campos obligatorios y marque al menos un tema por resolver."); return; }
     if (!endpoint) { aviso("error", "La agenda en línea todavía no está conectada. Escríbanos por WhatsApp al 942 927 868."); return; }
     var d = {};
-    new FormData(form).forEach(function (v, k) { if (typeof v === "string") d[k] = v.trim(); });
+    new FormData(form).forEach(function (v, k) { if (typeof v === "string" && k !== "dolores") d[k] = v.trim(); });
+    d.dolores = [].map.call(form.querySelectorAll('input[name="dolores"]:checked'), function (c) { return c.value; }).join(",");
     var o = origen();
     d.formulario = "demo"; d.pagina = location.pathname; d.enviado = new Date().toISOString();
     d.fuente = o.fuente || ""; d.entrada = o.entrada || "";

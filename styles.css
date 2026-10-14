@@ -512,6 +512,7 @@ picture > source { display: none; }
 @media (max-width: 720px) { .sin-convocatorias { grid-template-columns: 1fr; grid-template-areas: "icono" "titulo" "fecha" "texto" "accion"; row-gap: 10px; padding: 26px 22px; } .sin-convocatorias .boton { justify-self: start; margin-top: 6px; } }
 .campo input[type="file"] { padding: 10px; border-style: dashed; background: var(--fondo-2); cursor: pointer; }
 .campo input[type="file"]::file-selector-button { font: inherit; font-weight: 600; font-size: .88rem; margin-right: 14px; padding: 10px 16px; border: 0; border-radius: 999px; background: var(--grafito); color: #fff; cursor: pointer; }
+fieldset.campo.invalido { border-color: var(--error); }
 .campo [aria-invalid="true"], .consentimiento input[aria-invalid="true"] { border-color: var(--error); outline: 2px solid rgba(180, 35, 24, .25); outline-offset: 1px; }
 /* Empleos: la guía «Antes de enviar» acompaña al formulario mientras se completa (sin hueco a la izquierda). */
 @media (min-width: 881px) { #postular .rejilla-contacto > div:first-child { position: sticky; top: 96px; } }

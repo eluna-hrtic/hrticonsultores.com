@@ -1,4 +1,4 @@
-/* HRTIC · sitio web v1.32 (cupos de la promoción) · v1.20 · comportamiento mínimo, sin dependencias (movimiento con prefers-reduced-motion desde el 30/09/2026) */
+/* HRTIC · sitio web v1.33 (carruseles con teclado) · v1.32 (cupos de la promoción) · v1.20 · comportamiento mínimo, sin dependencias (movimiento con prefers-reduced-motion desde el 30/09/2026) */
 (function () {
   "use strict";
 
@@ -88,6 +88,14 @@
   if (angosta) {
     document.querySelectorAll(".rejilla-siete, .rejilla:not(.guias-rejilla), .pasos, .testimonios, .galeria, .valores").forEach(function (c) {
       if (c.children.length < 2 || c.closest(".calc")) return;
+      // v1.33 (13/10/2026): el carrusel se alcanza y se desplaza con el teclado (WCAG 2.1.1; axe «scrollable-region-focusable»). Las listas
+      // conservan su rol; un div recibe el rol «region» para poder llevar nombre.
+      if (!c.hasAttribute("tabindex")) {
+        var sec = c.closest("section"), h2 = sec && sec.querySelector("h2");
+        c.setAttribute("tabindex", "0");
+        if (!/^(UL|OL)$/.test(c.tagName)) c.setAttribute("role", "region");
+        if (!c.hasAttribute("aria-label")) c.setAttribute("aria-label", (h2 ? h2.textContent.trim() + " · " : "") + "desliza para ver más");
+      }
       var aviso = document.createElement("p");
       aviso.className = "desliza"; aviso.setAttribute("aria-hidden", "true"); aviso.textContent = "Desliza para ver más";
       c.parentNode.insertBefore(aviso, c.nextSibling);
