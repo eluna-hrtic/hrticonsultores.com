@@ -40,7 +40,7 @@
       d: "Encuesta de clima anónima con matriz de prioridades y plan de acción, encuesta de salida, buzón y canal de denuncias",
       p: [2.80, 1.70, 1.00, 0.90, 0.90, 0.70] },
     { k: "corporativo", n: "Corporativo", grupo: "Corporativo", minimo: 735,
-      d: "Varias razones sociales con cupo único, API y webhooks, marca blanca y auditoría anual de cumplimiento (desde 51 trabajadores)",
+      d: "Varias razones sociales con cupo único, API y webhooks, la plataforma dentro de su intranet (sus dominios) y auditoría anual de cumplimiento (desde 51 trabajadores)",
       p: [null, null, 2.20, 2.00, 1.80, 1.70] }
   ];
   // Paquetes de referencia (estructura del 03/10/2026, precios del 08/10/2026): sirven para nombrar el plan y para las pruebas.
@@ -186,7 +186,7 @@
   function desde() { return { sin_igv: MICRO.minimo, con_igv: r2(MICRO.minimo * (1 + IGV)) }; }
   function soles(x) { return "S/ " + Number(x).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  g.HRTarifario = { VERSION: "2026-10-14.1", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
+  g.HRTarifario = { VERSION: "2026-10-14.2", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
     MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo,
     cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles,
     MODALIDADES: MODALIDADES, COSTOS: COSTOS, MARGEN_MIN: MARGEN_MIN, modalidad: modalidad, margen: margen, propuesta: propuesta, minimoConMargen: minimoConMargen, descuentoAplicable: descuentoAplicable };
