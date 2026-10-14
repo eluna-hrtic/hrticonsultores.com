@@ -1006,8 +1006,9 @@ main > :first-child h1 .script { animation: hrtic-escribe 1.2s .6s cubic-bezier(
 .plan-modulo:has(input:checked) { border-color: var(--cian); }
 .calc-resultado .boton { margin-top: 6px; }
 @media (max-width: 520px) { .plan-modulo { grid-template-columns: 18px minmax(0, 1fr); } .plan-modulo .pm-precio { grid-column: 2; padding-top: 0; } }
-/* Con «Plataforma» son diez enlaces: hamburguesa hasta 1180 px y menú compacto desde 1181 px, sin tapar la marca. */
-@media (min-width: 1001px) and (max-width: 1180px) {
+/* Con «Plataforma» son diez enlaces: hamburguesa hasta 1180 px y menú compacto desde 1181 px, sin tapar la marca.
+   v1.35.1: con «Pide tu demo» en el menú el corte sube a 1 240 px (de 1 181 a 1 206 px la fila desbordaba hasta 26 px). */
+@media (min-width: 1001px) and (max-width: 1240px) {
   .menu-boton { display: block; }
   .menu {
     display: none; position: absolute; top: 72px; left: 0; right: 0;
@@ -1018,8 +1019,8 @@ main > :first-child h1 .script { animation: hrtic-escribe 1.2s .6s cubic-bezier(
   .menu a { padding: 12px 14px; border-radius: 10px; font-size: .95rem; }
   .menu .boton { margin: 8px 0 0; text-align: center; }
 }
-@media (min-width: 1181px) { .marca { flex: none; } .marca span { max-width: 132px; } .menu { gap: 0; } .menu a { padding: 8px 8px; } .menu .boton { margin-left: 6px; padding-left: 16px; padding-right: 16px; } }
-@media (min-width: 1181px) and (max-width: 1300px) { .menu a { padding: 8px 6px; font-size: .9rem; } }
+@media (min-width: 1241px) { .marca { flex: none; } .marca span { max-width: 132px; } .menu { gap: 0; } .menu a { padding: 8px 8px; } .menu .boton { margin-left: 6px; padding-left: 16px; padding-right: 16px; } }
+@media (min-width: 1241px) and (max-width: 1300px) { .menu a { padding: 8px 6px; font-size: .9rem; } }
 
 /* v1.32 (10/10/2026): promoción con cupos (parciales/cupos.html) y agenda de demostraciones (demo.html) */
 .cupos { padding: 8px 0 40px; }
@@ -1062,3 +1063,16 @@ main > :first-child h1 .script { animation: hrtic-escribe 1.2s .6s cubic-bezier(
 .gestion-datos dd { margin: 0; }
 .gestion-botones { display: flex; flex-wrap: wrap; gap: 10px; }
 @media (max-width: 480px) { .gestion-datos { grid-template-columns: 1fr; gap: 2px; } .gestion-datos dd { margin-bottom: 8px; } }
+
+/* v1.35.1 (14/10/2026): «Pide tu demo» siempre a la vista. Con el menú en hamburguesa (hasta 1 240 px) el botón queda junto a ☰, fuera del menú. */
+.demo-corto { display: none; }
+@media (max-width: 1240px) {
+  .cabecera .demo-corto { display: inline-flex; margin-left: auto; padding: 10px 16px; font-size: .9rem; white-space: nowrap; }
+  .menu .boton-demo { display: none; }
+}
+@media (max-width: 420px) {
+  .cabecera .contenedor { gap: 10px; }
+  .cabecera .demo-corto { padding: 9px 12px; font-size: .85rem; }
+  .cabecera .marca small { display: none; }   /* en celular el nombre largo chocaba con «Pide tu demo» (320 px) o bajaba a 3 líneas */
+}
+@media (max-width: 360px) { .cabecera .contenedor { gap: 8px; } .cabecera .demo-corto { padding: 8px 10px; font-size: .8rem; } }
