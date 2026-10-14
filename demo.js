@@ -74,7 +74,7 @@
       var h = horarios.filter(function (x) { return x.fecha === fecha; });
       var p = partesDia(h[0].dia);
       var b = boton("agenda-dia", "<small>" + p.semana + "</small><strong>" + p.num + "</strong>",
-                    p.largo + ", " + h.length + (h.length === 1 ? " horario libre" : " horarios libres"));
+                    p.semana + " " + p.num + ": " + p.largo + ", " + h.length + (h.length === 1 ? " horario libre" : " horarios libres"));   // v1.35: el nombre accesible empieza con el texto visible (WCAG 2.5.3)
       b.setAttribute("data-fecha", fecha);
       b.addEventListener("click", function () { mostrarDia(fecha); });
       cajaDias.appendChild(b);
