@@ -1,4 +1,4 @@
-/* HRTIC · Tarifario «Arma tu plan» (v1.28, 08/10/2026: formas de pago con descuento y propuesta). Fuente única de precios: la usa /admin y se copia tal cual a la web
+/* HRTIC · Tarifario «Arma tu plan» (v1.28, 08/10/2026: formas de pago con descuento y propuesta; 14/10/2026: Cumplimiento con 22 obligaciones y el sondeo de hostigamiento, que sale de Clima). Fuente única de precios: la usa /admin y se copia tal cual a la web
  * (hrticonsultores.com/assets/js/tarifario.js). Montos en S/ por trabajador al mes, SIN IGV.
  * Estructura del 06/10/2026 (v1.19): el precio de cada módulo es la diferencia entre un paquete y el anterior, así que Asistencia + los
  * módulos de un paquete = el precio exacto de ese paquete; Asistencia siempre incluida; mínimo proporcional en planes mixtos; la factura
@@ -34,10 +34,10 @@
       d: "Objetivos, evaluación 90° a 360°, apuntes de incidentes, actas 1:1, Nine Box y calibración",
       p: [5.70, 3.40, 2.00, 1.80, 1.70, 1.60] },
     { k: "cumplimiento", n: "Cumplimiento laboral", grupo: "Integral", minimo: 133,
-      d: "Autodiagnóstico de 17 obligaciones con evidencia, semáforo, plan de acción y multa potencial SUNAFIL",
+      d: "Autodiagnóstico de 22 obligaciones con evidencia, semáforo, plan de acción, multa potencial SUNAFIL y sondeo anual de hostigamiento sexual",
       p: [3.00, 1.70, 1.10, 1.00, 0.90, 0.90] },
     { k: "clima", n: "Clima y convivencia", grupo: "Integral", minimo: 132,
-      d: "Encuesta de clima anónima con matriz de prioridades y plan de acción, encuesta de salida, evaluación anual de hostigamiento, buzón y canal de denuncias",
+      d: "Encuesta de clima anónima con matriz de prioridades y plan de acción, encuesta de salida, buzón y canal de denuncias",
       p: [2.80, 1.70, 1.00, 0.90, 0.90, 0.70] },
     { k: "corporativo", n: "Corporativo", grupo: "Corporativo", minimo: 735,
       d: "Varias razones sociales con cupo único, API y webhooks, marca blanca y auditoría anual de cumplimiento (desde 51 trabajadores)",
@@ -186,7 +186,7 @@
   function desde() { return { sin_igv: MICRO.minimo, con_igv: r2(MICRO.minimo * (1 + IGV)) }; }
   function soles(x) { return "S/ " + Number(x).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  g.HRTarifario = { VERSION: "2026-10-08.3", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
+  g.HRTarifario = { VERSION: "2026-10-14.1", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
     MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo,
     cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles,
     MODALIDADES: MODALIDADES, COSTOS: COSTOS, MARGEN_MIN: MARGEN_MIN, modalidad: modalidad, margen: margen, propuesta: propuesta, minimoConMargen: minimoConMargen, descuentoAplicable: descuentoAplicable };
