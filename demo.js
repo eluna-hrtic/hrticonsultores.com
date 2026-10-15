@@ -11,7 +11,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var cajaDias = $("d-dias"), cajaHoras = $("d-horas"), estado = $("d-estado"), elegido = $("d-elegido");
   var campoInicio = $("d-inicio"), campoPlan = $("d-plan");
-  var WSP = "https://wa.me/51942927868?text=" + encodeURIComponent("Hola, vengo de la web de HRTIC. Quiero agendar una demostración de la plataforma.");
+  var WSP = "https://wa.me/51942927868?text=" + encodeURIComponent("Hola, vengo de la web de HRTIC. Quiero agendar una demostración de PRAOLIR, la plataforma de HRTIC.");
   var horarios = [], diaActual = "", horaElegida = null;
 
   var params = new URLSearchParams(location.search);
