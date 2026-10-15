@@ -794,6 +794,10 @@ fieldset.campo.invalido { border-color: var(--error); }
    Recursos tomados del benchmark (aparición al bajar, marquesina, manifiesto que se ilumina, datos flotantes),
    sin cifras de clientes (decisión de Ernesto, 24/09/2026) y siempre con prefers-reduced-motion. */
 @font-face { font-family: "Kaushan Script"; font-style: normal; font-weight: 400; font-display: swap; src: url(/kaushan-script-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+/* 15/10/2026 (v1.40 de la plataforma): tipografía de la marca PRAOLIR (Unbounded, variable, SIL OFL 1.1: OFL-Unbounded.txt). El texto corrido sigue en Poppins. */
+@font-face { font-family: "Unbounded"; font-style: normal; font-weight: 200 900; font-display: swap; src: url(/Unbounded-latin.woff2) format("woff2"); }
+.praolir { font-family: "Unbounded", "Poppins", sans-serif; font-weight: 800; letter-spacing: .02em; text-transform: none; }
+.kicker .praolir { font-size: 1.04em; }
 .script { font-family: "Kaushan Script", "Poppins", cursive; font-weight: 400; letter-spacing: 0; color: var(--cian-texto); }
 h1 .script, h2 .script { font-size: 1.06em; line-height: 1; }
 
