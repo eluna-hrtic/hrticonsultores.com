@@ -6,7 +6,9 @@
    v1.6 (30/09/2026): cálculo por beneficio (gratificación, CTS, vacaciones, indemnización), variables mes por mes y opción «gano la RMV»;
    la gratificación trunca toma la remuneración del mes anterior al cese, D.S. N.º 005-2002-TR, art. 5;
    v1.7 (30/09/2026): trabajadoras y trabajadores del hogar (Ley N.º 31047), régimen agrario (Ley N.º 31110) y
-   construcción civil (convención colectiva 2026, R.M. N.º 197-2025-TR))
+   construcción civil (convención colectiva 2026, R.M. N.º 197-2025-TR);
+   v1.8 (16/10/2026): jornal diario con pago semanal en los beneficios y el costo laboral (30 jornales: D.S. N.º 001-97-TR, arts. 10 y 11),
+   boleta semanal (jornal o sueldo mensual pagado por semana) y adelanto de quincena con la boleta de fin de mes)
    Cálculo orientativo de la liquidación al cese. Normas: D.S. 001-97-TR (CTS), Ley 27735 y D.S. 005-2002-TR
    (gratificaciones), Ley 30334 (bonificación extraordinaria), D. Leg. 713 y D.S. 012-92-TR (vacaciones),
    D.S. 003-97-TR, arts. 10, 38 y 76 (indemnización), TUO D.S. 013-2013-PRODUCE (micro y pequeña empresa).
@@ -380,17 +382,26 @@
      No incluye utilidades, horas extras, movilidad ni otros conceptos variables. */
   var SIS_MICRO = 15;
   function costoLaboral(d) {
-    var sueldo = +d.sueldo || 0;
+    // v1.8: con jornal diario (pago semanal) se pagan los 365 días del año (6 jornales y el dominical cada semana, y los feriados:
+    // D. Leg. N.º 713, arts. 4 y 8); la CTS, la gratificación y las vacaciones se calculan con 30 jornales (D.S. N.º 001-97-TR, arts. 10 y 11).
+    var jornal = d.tipoPago === "jornal" ? +d.jornal || 0 : 0;
+    if (d.tipoPago === "jornal" && !(jornal > 0)) return { error: "Ingresa el jornal diario del puesto." };
+    var sueldo = jornal ? r2(jornal * 30) : +d.sueldo || 0;
     if (sueldo <= 0) return { error: "Ingresa la remuneración mensual del puesto." };
     var rmv = rmvEn(d.fecha ? fecha(d.fecha) : hoyLima()), RMV = rmv.monto, ASIGNACION = r2(RMV * 0.10);   // la vigente hoy
     var reg = d.regimen || "general", notas = [], filas = [];
+    if (jornal && sueldo < RMV) return { error: "El jornal no puede ser menor que la mínima vital entre 30 (" + soles(r2(RMV / 30)) + " con la RMV de " + soles(RMV) + ", " + rmv.norma + ") para una jornada completa." };
     if (sueldo < RMV) return { error: "La remuneración no puede ser menor que la mínima vital vigente (S/ " + RMV.toFixed(2) + ", " + rmv.norma + ") para una jornada completa (TUO D.S. N.º 013-2013-PRODUCE, art. 52; en el régimen general, la RMV vigente)." };
     var af = d.asignacion ? ASIGNACION : 0, rc = sueldo + af;
+    var remMes = jornal ? r2(jornal * 365 / 12) + af : rc;     // lo que se paga en promedio al mes (base de EsSalud y de los seguros)
     var salud = d.salud || (reg === "micro" ? "sis" : "essalud");
     if (reg !== "micro" && salud === "sis") salud = "essalud";
     var tasaBonif = salud === "eps" ? 0.0675 : 0.09;
-    var remAnual = 12 * rc;
-    filas.push({ id: "rem", nombre: "12 remuneraciones", monto: r2(remAnual),
+    var remAnual = 12 * remMes;
+    if (jornal) filas.push({ id: "rem", nombre: "Jornales del año (365 días)", monto: r2(remAnual),
+                 detalle: soles(jornal) + " × 365: 6 jornales y el dominical cada semana (D. Leg. N.º 713, art. 4) y los feriados (art. 8)" + (af ? ", más la asignación familiar " + soles(af) + " × 12 (Ley N.º 25129)" : "") +
+                   ". Incluyen los días de vacaciones (" + (reg === "general" ? "30" : "15") + " días; " + (reg === "general" ? "D. Leg. N.º 713" : "TUO D.S. N.º 013-2013-PRODUCE, art. 55") + ")." });
+    else filas.push({ id: "rem", nombre: "12 remuneraciones", monto: r2(remAnual),
                  detalle: soles(sueldo) + (af ? " + asignación familiar " + soles(af) + " (Ley N.º 25129)" : "") + " × 12. Incluyen el mes de vacaciones (" + (reg === "general" ? "30" : "15") + " días; " + (reg === "general" ? "D. Leg. N.º 713" : "TUO D.S. N.º 013-2013-PRODUCE, art. 55") + ")." });
     var vacDias = reg === "general" ? 30 : 15, vac = rc * vacDias / 30;   // al año: 30 días = una remuneración (1/12 al mes); 15 días = media
     filas.push({ id: "vac", nombre: "Vacaciones devengadas (" + vacDias + " días al año)", monto: r2(vac),
@@ -420,7 +431,7 @@
       saludMonto = 12 * SIS_MICRO;
       saludDet = "SIS microempresas: S/ 15.00 al mes por trabajador (TUO D.S. N.º 013-2013-PRODUCE, art. 64.2). Si el trabajador está en EsSalud, elige esa opción.";
     } else {
-      var base = Math.max(rc, RMV);
+      var base = Math.max(remMes, RMV);
       saludMonto = 12 * 0.09 * base;
       saludDet = "9 % de " + soles(base) + " al mes; la base no puede ser menor que la RMV (Ley N.º 26790, art. 6). La gratificación y la CTS no pagan EsSalud (Ley N.º 30334, art. 1)" +
                  (salud === "eps" ? ". Con EPS el total sigue siendo 9 %: 6.75 % a EsSalud y 2.25 % como crédito para la EPS; el plan de la EPS puede costar más" : "") + ".";
@@ -429,14 +440,14 @@
     var vida = 0, sctr = 0;
     var tVida = +d.tasaVida || 0, tSctr = +d.tasaSctr || 0;
     if (tVida > 0) {
-      vida = 12 * rc * tVida / 100;
+      vida = 12 * remMes * tVida / 100;
       filas.push({ id: "vida", nombre: "Seguro Vida Ley (" + tVida + " % según póliza)", monto: r2(vida),
                    detalle: "Obligatorio desde el primer día para todo trabajador del sector privado, cualquiera sea su régimen laboral (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019; D.S. N.º 009-2020-TR, art. 2" + (reg === "pequena" ? "; para la pequeña empresa lo reitera el TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." });
     } else {
       notas.push("Falta el Seguro Vida Ley: es obligatorio desde el primer día para todo trabajador del sector privado, cualquiera sea su régimen laboral, también en la micro y pequeña empresa (D. Leg. N.º 688, art. 1, modificado por el D.U. N.º 044-2019; D.S. N.º 009-2020-TR, art. 2). Su prima la fija la aseguradora: ingrésala para sumarla.");
     }
     if (tSctr > 0) {
-      sctr = 12 * rc * tSctr / 100;
+      sctr = 12 * remMes * tSctr / 100;
       filas.push({ id: "sctr", nombre: "SCTR (" + tSctr + " % según póliza)", monto: r2(sctr),
                    detalle: "Solo en actividades de riesgo (Ley N.º 26790, art. 19" + (reg === "pequena" ? "; en la pequeña empresa, «cuando corresponda», TUO D.S. N.º 013-2013-PRODUCE, art. 50" : "") + ")." + (reg === "micro" ? " El TUO MYPE no lo menciona para la microempresa ni la excluye: si la actividad es de riesgo, revisa tu caso." : "") });
     }
@@ -449,8 +460,10 @@
                "Tampoco incluye horas extras, movilidad, bonos ni lo que diga un convenio colectivo. Los aportes a la AFP o a la ONP los paga el trabajador: se descuentan de su remuneración y no son un costo adicional para la empresa.");
     if (reg !== "general") notas.push("El régimen MYPE solo se aplica si la empresa está inscrita en el REMYPE. La Ley N.º 32353 mantiene estos mismos montos (arts. 44, 49 y 50) y rige al día siguiente de publicado su reglamento.");
     if (reg === "general" && d.asignacion === false) notas.push("Si el trabajador tiene hijos menores de 18 años, o mayores que siguen estudios superiores (hasta seis años después de cumplir 18), le corresponde asignación familiar: marca la casilla para sumarla (Ley N.º 25129; D.S. N.º 035-90-TR, art. 6).");
+    if (jornal) notas.push("Jornal diario de " + soles(jornal) + ": cada semana se pagan " + soles(r2(jornal * 7)) + " (6 jornales y el dominical) si trabaja los 6 días; la CTS, la gratificación y las vacaciones se calculan con 30 jornales (" + soles(sueldo) + "; D.S. N.º 001-97-TR, arts. 10 y 11; gratificación por analogía). La boleta se entrega por cada pago semanal (D.S. N.º 001-98-TR, arts. 18 y 19).");
     notas.push("Remuneración mínima vital usada: S/ " + RMV.toFixed(2) + " (" + rmv.norma + "). El D.S. N.º 015-2026-TR anuncia un segundo tramo, hasta S/ 1,300, que requiere otro decreto supremo en el primer semestre de 2027: si se publica, la base mínima de EsSalud y la asignación familiar suben con él.");
-    return { filas: filas, total: total, mensual: r2(total / 12), sobre: r2(total / remAnual * 100), rc: r2(rc), regimen: reg, notas: notas, rmv: rmv };
+    return { filas: filas, total: total, mensual: r2(total / 12), semanal: r2(total / 52), sobre: r2(total / remAnual * 100), rc: r2(rc), regimen: reg, notas: notas, rmv: rmv,
+             jornal: jornal || null, pagoSemanal: jornal ? r2(jornal * 7) : null };
   }
 
   // ---------- v1.6 (30/09/2026): cálculo por beneficio, para el régimen general, la pequeña y la microempresa ----------
@@ -764,6 +777,168 @@
     return "S/ " + x.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
+  // ---------- v1.8 (16/10/2026): jornal diario con pago semanal, boleta semanal y adelanto de quincena ----------
+  /* Con jornal diario, la remuneración computable de la CTS es de 30 jornales (D.S. N.º 001-97-TR, art. 10: «treinta jornales»; art. 11:
+     la remuneración diaria se multiplica por treinta); la de las vacaciones es la misma (D. Leg. N.º 713, art. 15); la gratificación y la
+     indemnización se calculan también con 30 jornales (criterio usual, por analogía). En el régimen agrario la remuneración ya es diaria (RD)
+     y en el del hogar es mensual: allí la opción no aplica. */
+  function conJornal(fn) {
+    return function (d) {
+      var reg = d.regimen || "general";
+      if (d.tipoPago !== "jornal" || reg === "agrario" || reg === "hogar") return fn(d);
+      var j = +d.jornal || 0;
+      if (!(j > 0)) return { error: "Ingresa tu jornal diario." };
+      var d2 = {}; for (var k in d) if (Object.prototype.hasOwnProperty.call(d, k)) d2[k] = d[k];
+      d2.sueldo = r2(j * 30); d2.minima = false;
+      var r = fn(d2);
+      if (r && !r.error && r.notas) r.notas.unshift("Jornal diario de " + soles(j) + ": la remuneración computable es de 30 jornales (" + soles(d2.sueldo) +
+        "). CTS: D.S. N.º 001-97-TR, arts. 10 y 11; vacaciones: D. Leg. N.º 713, art. 15; gratificación e indemnización: 30 jornales por analogía (criterio usual, sin norma expresa).");
+      return r;
+    };
+  }
+  /* Tasas del Sistema Privado de Pensiones registradas en PRAOLIR al 16/10/2026 (SBS, por mes de devengue): aporte 10 %, prima 1.37 %,
+     comisión sobre el flujo de cada AFP. ONP 13 % (D.L. N.º 19990). EsSalud 9 % a cargo del empleador (Ley N.º 26790). */
+  var AFP = { habitat: ["AFP Habitat", 1.47], integra: ["AFP Integra", 1.55], prima: ["AFP Prima", 1.60], profuturo: ["AFP Profuturo", 1.69] };
+  function descuentosPension(base, d) {
+    if (d.pension === "afp") {
+      var a = AFP[d.afp] || AFP.integra, out = [{ nombre: "Aporte obligatorio a la AFP (10 %)", monto: r2(base * 0.10), detalle: "Va a tu fondo de pensiones." },
+        { nombre: "Prima de seguro (1.37 %)", monto: r2(base * 0.0137), detalle: "Seguro de invalidez y sobrevivencia (tope: remuneración máxima asegurable)." }];
+      if (d.comision !== "mixta") out.push({ nombre: "Comisión sobre el flujo de " + a[0] + " (" + a[1].toFixed(2) + " %)", monto: r2(base * a[1] / 100), detalle: "Con comisión mixta la AFP la cobra sobre el saldo, no en la boleta." });
+      return out;
+    }
+    return [{ nombre: "ONP (13 %)", monto: r2(base * 0.13), detalle: "Sistema Nacional de Pensiones (D.L. N.º 19990)." }];
+  }
+  function lunesDe(f) { return masDias(f, -((f.getUTCDay() + 6) % 7)); }
+  /* Días del mes comercial (30 días) entre dos fechas: el día 31 no cuenta y el último día de febrero completa los 30. Así el sueldo
+     mensual pagado por semana suma exactamente el sueldo en el mes. */
+  function diasComerciales(a, b) {
+    var n = 0;
+    for (var f = a; f <= b; f = masDias(f, 1)) {
+      var dd = f.getUTCDate(), ult = finDeMes(f.getUTCFullYear(), f.getUTCMonth());
+      if (dd === 31) continue;
+      n += f.getUTCMonth() === 1 && dd === ult ? 30 - ult + 1 : 1;
+    }
+    return n;
+  }
+  /* Boleta de una semana (lunes a domingo; la semana pertenece al mes de su domingo). Jornal: jornales de los días trabajados, dominical
+     proporcional a los días trabajados (D. Leg. N.º 713, art. 4) y feriados no trabajados (art. 8). Sueldo mensual pagado por semana:
+     sueldo / 30 por cada día del mes comercial (incluye el descanso), menos las faltas. Horas extra: 25 % las dos primeras de cada día y
+     35 % las siguientes (TUO D.S. N.º 007-2002-TR, art. 10). */
+  function boletaSemanal(d) {
+    var lunes = fecha(d.lunes);
+    lunes = lunes ? lunesDe(lunes) : lunesDe(hoyLima());
+    var domingo = masDias(lunes, 6), cierra = masDias(domingo, 7).getUTCMonth() !== domingo.getUTCMonth();
+    var rmv = rmvEn(domingo), porJornal = d.tipoPago !== "sueldo";
+    var ds = d.diasSemana === "5" ? 5 : 6;
+    var dt = d.diasTrabajados === "" || d.diasTrabajados === undefined || d.diasTrabajados === null ? ds : Math.floor(+d.diasTrabajados);
+    if (!(dt >= 0 && dt <= ds)) return { error: "Los días trabajados van de 0 a " + ds + "." };
+    var fer = Math.max(0, Math.floor(+d.feriados || 0));
+    if (dt + fer > ds) return { error: "Los días trabajados más los feriados no pueden pasar de " + ds + "." };
+    var horas = +d.jornada || 8, h25 = Math.max(0, +d.he25 || 0), h35 = Math.max(0, +d.he35 || 0);
+    if (h25 > 2 * ds) return { error: "Las horas extra al 25 % son las dos primeras de cada día: hasta " + (2 * ds) + " en la semana." };
+    var ing = [], notas = [], vh, mes = MESES[domingo.getUTCMonth()];
+    if (porJornal) {
+      var j = +d.jornal || 0;
+      if (!(j > 0)) return { error: "Ingresa el jornal diario." };
+      if (j < rmv.monto / 30) notas.push("El jornal es menor que la mínima vital entre 30 (" + soles(r2(rmv.monto / 30)) + ", " + rmv.norma + "): a jornada completa debe ser al menos ese monto.");
+      ing.push({ nombre: "Jornales (" + dt + " día" + (dt === 1 ? "" : "s") + ")", monto: r2(j * dt), detalle: soles(j) + " × " + dt + "." });
+      if (dt) ing.push({ nombre: "Dominical", monto: r2(j * dt / ds), detalle: "Proporcional a los días trabajados: " + soles(j) + " × " + dt + " / " + ds + " (D. Leg. N.º 713, art. 4)." });
+      if (fer) ing.push({ nombre: "Feriados no trabajados (" + fer + ")", monto: r2(j * fer), detalle: "Un jornal por feriado (D. Leg. N.º 713, art. 8)." });
+      vh = j / horas;
+    } else {
+      var s = +d.sueldo || 0;
+      if (!(s > 0)) return { error: "Ingresa el sueldo mensual." };
+      if (s < rmv.monto) notas.push("El sueldo es menor que la mínima vital (" + soles(rmv.monto) + ", " + rmv.norma + "): a jornada completa debe ser al menos ese monto.");
+      var dc = diasComerciales(lunes, domingo), faltas = ds - dt - fer;
+      ing.push({ nombre: "Sueldo de la semana (" + dc + " día" + (dc === 1 ? "" : "s") + " del mes de 30)", monto: r2(s / 30 * dc),
+                 detalle: soles(s) + " / 30 × " + dc + ". Incluye el descanso semanal." + (dc !== 7 ? " El día 31 no se paga y el último día de febrero completa los 30: así las semanas del mes suman el sueldo." : "") });
+      if (faltas > 0) ing.push({ nombre: "Descuento por faltas (" + faltas + ")", monto: -r2(s / 30 * faltas), detalle: "Un día de sueldo por falta injustificada (" + soles(r2(s / 30)) + ")." });
+      vh = s / 30 / horas;
+    }
+    if (h25) ing.push({ nombre: "Horas extra al 25 % (" + h25 + " h)", monto: r2(vh * 1.25 * h25), detalle: "Valor hora " + soles(r2(vh)) + " × 1.25 (TUO D.S. N.º 007-2002-TR, art. 10)." });
+    if (h35) ing.push({ nombre: "Horas extra al 35 % (" + h35 + " h)", monto: r2(vh * 1.35 * h35), detalle: "Valor hora " + soles(r2(vh)) + " × 1.35." });
+    var af = 0;
+    if (d.asignacion && cierra) { af = r2(rmv.monto * 0.10); ing.push({ nombre: "Asignación familiar del mes", monto: af, detalle: "10 % de la RMV (Ley N.º 25129): se paga en la última semana del mes." }); }
+    else if (d.asignacion) notas.push("La asignación familiar del mes (" + soles(r2(rmv.monto * 0.10)) + ") se paga en la última semana de " + mes + ", la que termina el último domingo del mes.");
+    var bruto = 0; ing.forEach(function (c) { bruto += c.monto; }); bruto = r2(bruto);
+    var desc = descuentosPension(bruto, d), td = 0; desc.forEach(function (c) { td += c.monto; }); td = r2(td);
+    var essalud = r2(bruto * 0.09);
+    notas.push("Semana del " + fmtFecha(lunes) + " al " + fmtFecha(domingo) + ": pertenece a " + mes + " (el mes de su domingo)" + (cierra ? " y es la última semana del mes." : "."));
+    notas.push("No incluye la retención de quinta categoría: se calcula con lo ganado en todo el mes y se aplica en la última semana del mes (Reglamento de la Ley del Impuesto a la Renta, art. 40). Tampoco incluye bonos, movilidad ni otros descuentos.");
+    notas.push("Aporte del empleador (no se descuenta): EsSalud 9 % = " + soles(essalud) + ". En la última semana del mes la base no puede ser menor que la RMV del mes (Ley N.º 26790, art. 6).");
+    notas.push("La boleta se entrega por cada pago, a más tardar el tercer día hábil siguiente (D.S. N.º 001-98-TR, arts. 18 y 19). Con PRAOLIR la planilla semanal se calcula con la asistencia y las boletas se firman en lote.");
+    return { tipo: "semanal", ingresos: ing, descuentos: desc, bruto: bruto, total: r2(bruto - td), essalud: essalud, lunes: fmtFecha(lunes), domingo: fmtFecha(domingo), mes: mes, cierra: cierra, notas: notas };
+  }
+  /* Adelanto de quincena: un porcentaje del sueldo a mitad de mes y la boleta solo a fin de mes, con el sueldo completo, sus aportes
+     y el adelanto como descuento (concepto 0701 «Adelanto» de la Tabla 22 de SUNAT). */
+  function adelantoQuincena(d) {
+    var s = +d.sueldo || 0;
+    if (!(s > 0)) return { error: "Ingresa el sueldo mensual." };
+    var pct = d.pct === "" || d.pct === undefined || d.pct === null ? 50 : +d.pct;
+    if (!(pct >= 1 && pct <= 50)) return { error: "El adelanto va de 1 a 50 % del sueldo." };
+    var rmv = rmvEn(hoyLima()), af = d.asignacion ? r2(rmv.monto * 0.10) : 0, adel = r2(s * pct / 100), notas = [];
+    var ing = [{ nombre: "Sueldo del mes", monto: r2(s), detalle: "Completo: el adelanto no lo reduce." }];
+    if (af) ing.push({ nombre: "Asignación familiar", monto: af, detalle: "10 % de la RMV (Ley N.º 25129)." });
+    var bruto = r2(s + af), desc = descuentosPension(bruto, d);
+    desc.push({ nombre: "0701 Adelanto de quincena", monto: adel, detalle: pct + " % del sueldo, pagado a mitad de mes." });
+    var td = 0; desc.forEach(function (c) { td += c.monto; }); td = r2(td);
+    if (s < rmv.monto) notas.push("El sueldo es menor que la mínima vital (" + soles(rmv.monto) + ", " + rmv.norma + "): a jornada completa debe ser al menos ese monto.");
+    notas.push("El adelanto es un pago a cuenta de la remuneración del mes, no un préstamo: la boleta de fin de mes muestra el sueldo completo, los aportes y retenciones, y descuenta lo adelantado con el concepto 0701 «Adelanto» (Tabla 22 de SUNAT). Conviene entregar al pagarlo una constancia firmada que el trabajador reciba.");
+    notas.push("No incluye la retención de quinta categoría, las horas extra, las faltas ni otros descuentos del mes: se aplican a fin de mes. Si en la primera quincena hubo licencias sin goce o el ingreso fue a mitad de mes, el adelanto debe ser proporcional.");
+    notas.push("La boleta se entrega a más tardar el tercer día hábil siguiente al pago de fin de mes (D.S. N.º 001-98-TR, arts. 18 y 19). Con PRAOLIR el adelanto se calcula para todo el personal, las constancias se firman en lote y el descuento pasa solo a la planilla del mes.");
+    return { tipo: "quincena", adelanto: adel, ingresos: ing, descuentos: desc, bruto: bruto, total: r2(bruto - td), notas: notas };
+  }
+  function pintarBoleta(salida, r, cta) {
+    if (r.error) { salida.innerHTML = '<p class="aviso aviso-error" role="alert">' + r.error + "</p>"; return; }
+    var fila = function (c, neg) { return "<tr><td><strong>" + c.nombre + "</strong><br><span class=\"calc-nota\">" + c.detalle + "</span></td><td class=\"num\">" + (neg || c.monto < 0 ? "− " : "") + soles(Math.abs(c.monto)) + "</td></tr>"; };
+    salida.innerHTML =
+      '<span class="kicker">' + (r.tipo === "quincena" ? "Adelanto del día de pago" : "Neto de la semana") + "</span>" +
+      '<p class="total">' + soles(r.tipo === "quincena" ? r.adelanto : r.total) + "</p>" +
+      (r.tipo === "quincena" ? '<p class="calc-nota">Boleta de fin de mes: neto ' + soles(r.total) + " después del adelanto.</p>" :
+        '<p class="calc-nota">Semana del ' + r.lunes + " al " + r.domingo + " · ingresos " + soles(r.bruto) + "</p>") +
+      '<div class="tabla-scroll"><table class="tabla-guia"><thead><tr><th>' + (r.tipo === "quincena" ? "Boleta de fin de mes" : "Concepto") + '</th><th class="num">Monto</th></tr></thead><tbody>' +
+      r.ingresos.map(function (c) { return fila(c, false); }).join("") + r.descuentos.map(function (c) { return fila(c, true); }).join("") +
+      '<tr><td><strong>Neto a pagar' + (r.tipo === "quincena" ? " a fin de mes" : "") + '</strong></td><td class="num"><strong>' + soles(r.total) + "</strong></td></tr></tbody></table></div>" +
+      r.notas.map(function (t) { return '<p class="calc-nota">' + t + "</p>"; }).join("") +
+      '<p><a class="boton boton-primario" href="' + cta.href + '">' + cta.texto + "</a></p>";
+    salida.focus();
+  }
+  function iniciarBoleta(formId, salidaId, fn, evento) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+    var salida = document.getElementById(salidaId), el = form.elements;
+    function visibles() {
+      var tp = el.tipoPago ? el.tipoPago.value : "";
+      form.querySelectorAll(".solo-jornal").forEach(function (x) { x.hidden = tp === "sueldo"; });
+      form.querySelectorAll(".solo-sueldo").forEach(function (x) { x.hidden = tp !== "sueldo"; });
+      form.querySelectorAll(".solo-afp").forEach(function (x) { x.hidden = !(el.pension && el.pension.value === "afp"); });
+    }
+    if (el.lunes && !el.lunes.value) el.lunes.value = lunesDe(hoyLima()).toISOString().slice(0, 10);
+    form.addEventListener("change", visibles);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var v = function (n) { return el[n] ? (el[n].type === "checkbox" ? el[n].checked : el[n].value) : undefined; };
+      var d = { tipoPago: v("tipoPago"), jornal: v("jornal"), sueldo: v("sueldo"), lunes: v("lunes"), diasSemana: v("diasSemana"), diasTrabajados: v("diasTrabajados"),
+                feriados: v("feriados"), jornada: v("jornada"), he25: v("he25"), he35: v("he35"), asignacion: !!v("asignacion"), pension: v("pension"), afp: v("afp"),
+                comision: v("comision"), pct: v("pct") };
+      var r = fn(d);
+      pintarBoleta(salida, r, { href: "/demo.html", texto: "Pide tu demo de PRAOLIR: planilla semanal y adelanto de quincena" });
+      if (!r.error && window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: evento, title: evento, event: true });
+    });
+    visibles();
+  }
+  /* Selector «¿Cómo te pagan?» de los formularios de beneficios y de costo laboral: con jornal se oculta la remuneración mensual y la RMV. */
+  function verPago(form, reg) {
+    var tp = form.elements.tipoPago;
+    if (!tp) return false;
+    var esp = reg === "agrario" || reg === "hogar", w = tp.closest(".campo");
+    if (w) w.hidden = esp;
+    var jor = !esp && tp.value === "jornal";
+    form.querySelectorAll(".solo-jornal").forEach(function (x) { x.hidden = !jor; });
+    form.querySelectorAll(".solo-sueldo").forEach(function (x) { x.hidden = jor; });
+    return jor;
+  }
+
   // ---------- formulario ----------
   function iniciar() {
     var form = document.getElementById("form-calculadora");
@@ -772,7 +947,8 @@
     var campo = function (n) { return form.elements[n]; };
     function visibles() {
       var reg = campo("regimen").value, motivo = campo("motivo").value, cese = fecha(campo("cese").value);
-      if (campo("minima")) { campo("sueldo").disabled = campo("minima").checked; campo("sueldo").closest(".campo").hidden = campo("minima").checked; }
+      var jor = verPago(form, reg), sinSueldo = jor || (campo("minima") && campo("minima").checked);
+      campo("sueldo").disabled = !!sinSueldo; campo("sueldo").closest(".campo").hidden = !!sinSueldo;
       form.querySelectorAll(".solo-general").forEach(function (el) { el.hidden = reg !== "general"; });
       form.querySelectorAll(".solo-agrario").forEach(function (el) { el.hidden = reg !== "agrario"; });
       form.querySelectorAll(".solo-hogar").forEach(function (el) { el.hidden = reg !== "hogar"; });
@@ -792,9 +968,10 @@
         vacGozadas: campo("vacGozadas").value,
         menosDe4h: campo("menosDe4h").checked, julioPagada: campo("julioPagada").checked,
         prorrateo: campo("prorrateo") ? campo("prorrateo").value !== "no" : true,
-        diciembrePagada: !campo("diciembreNoPagada").checked
+        diciembrePagada: !campo("diciembreNoPagada").checked,
+        tipoPago: campo("tipoPago") ? campo("tipoPago").value : "mensual", jornal: campo("jornal") ? campo("jornal").value : ""
       };
-      var r = calcular(d);
+      var r = conJornal(calcular)(d);
       if (r.error) {
         salida.innerHTML = '<p class="aviso aviso-error" role="alert">' + r.error + "</p>";
         return;
@@ -832,7 +1009,8 @@
     if (!form) return;
     var salida = document.getElementById("costo-salida");
     function visibles() {
-      var reg = form.elements.regimen.value;
+      var reg = form.elements.regimen.value, jor = verPago(form, reg);
+      form.elements.sueldo.closest(".campo").hidden = jor; form.elements.sueldo.disabled = jor;
       form.querySelectorAll(".solo-micro").forEach(function (el) { el.hidden = reg !== "micro"; });
       form.querySelectorAll(".no-micro").forEach(function (el) { el.hidden = reg === "micro"; });
     }
@@ -843,7 +1021,8 @@
       var r = costoLaboral({
         regimen: reg, sueldo: form.elements.sueldo.value, asignacion: form.elements.asignacion.checked,
         salud: reg === "micro" ? form.elements.saludMicro.value : (form.elements.eps.checked ? "eps" : "essalud"),
-        tasaVida: form.elements.tasaVida.value, tasaSctr: form.elements.tasaSctr.value
+        tasaVida: form.elements.tasaVida.value, tasaSctr: form.elements.tasaSctr.value,
+        tipoPago: form.elements.tipoPago ? form.elements.tipoPago.value : "mensual", jornal: form.elements.jornal ? form.elements.jornal.value : ""
       });
       if (r.error) { salida.innerHTML = '<p class="aviso aviso-error" role="alert">' + r.error + "</p>"; return; }
       var filas = r.filas.map(function (f) {
@@ -852,7 +1031,8 @@
       salida.innerHTML =
         '<span class="kicker">Costo laboral anual estimado</span>' +
         '<p class="total">' + soles(r.total) + "</p>" +
-        '<p class="calc-nota">En promedio, ' + soles(r.mensual) + " al mes: " + r.sobre.toFixed(1) + " % de las 12 remuneraciones.</p>" +
+        '<p class="calc-nota">En promedio, ' + soles(r.mensual) + " al mes y " + soles(r.semanal) + " por semana: " + r.sobre.toFixed(1) + " % de " + (r.jornal ? "los jornales del año" : "las 12 remuneraciones") + ".</p>" +
+        (r.jornal ? '<p class="calc-nota">Pago semanal del trabajador: ' + soles(r.pagoSemanal) + " (6 jornales y el dominical).</p>" : "") +
         '<div class="tabla-scroll"><table class="tabla-guia"><thead><tr><th>Concepto al año</th><th class="num">Monto</th></tr></thead><tbody>' +
         filas + "</tbody></table></div>" +
         r.notas.map(function (t) { return '<p class="calc-nota">' + t + "</p>"; }).join("") +
@@ -876,7 +1056,8 @@
              sueldo: val("sueldo"), minima: !!val("minima"), asignacion: !!val("asignacion"), eps: !!val("eps"), menosDe4h: !!val("menosDe4h"),
              gratificacion: val("gratificacion"), corte: val("corte"), cesado: !!val("cesado"), vacGozadas: val("vacGozadas"),
              motivo: val("motivo"), finContrato: val("finContrato"), variablesMeses: vm,
-             prorrateo: el.prorrateo ? el.prorrateo.value !== "no" : true, categoria: val("categoria"), dias: val("dias") };
+             prorrateo: el.prorrateo ? el.prorrateo.value !== "no" : true, categoria: val("categoria"), dias: val("dias"),
+             tipoPago: val("tipoPago") || "mensual", jornal: val("jornal") };
   }
   function pintarBeneficio(salida, r, cta) {
     if (r.error) { salida.innerHTML = '<p class="aviso aviso-error" role="alert">' + r.error + "</p>"; return; }
@@ -897,7 +1078,7 @@
     var salida = document.getElementById(salidaId);
     function visibles() {
       var el = form.elements;
-      var min = el.minima && el.minima.checked;
+      var jor = verPago(form, el.regimen ? el.regimen.value : ""), min = jor || (el.minima && el.minima.checked);
       if (el.sueldo) { el.sueldo.disabled = !!min; el.sueldo.closest(".campo").hidden = !!min; }
       form.querySelectorAll(".solo-modal").forEach(function (x) { x.hidden = !(el.motivo && el.motivo.value === "despido-modal"); });
       form.querySelectorAll(".solo-cesado").forEach(function (x) { x.hidden = !(el.cesado && el.cesado.checked); });
@@ -927,17 +1108,20 @@
   if (typeof module !== "undefined" && module.exports) {
     module.exports = { calcular: calcular, costoLaboral: costoLaboral, tiempo: tiempo, mesesCalendario: mesesCalendario, rmvEn: rmvEn, fecha: fecha,
                        gratificacionPeriodo: gratificacionPeriodo, ctsDeposito: ctsDeposito, vacacionesCalc: vacacionesCalc,
-                       indemnizacionCalc: indemnizacionCalc, variablesRegulares: variablesRegulares, construccionCivil: construccionCivil };
+                       indemnizacionCalc: indemnizacionCalc, variablesRegulares: variablesRegulares, construccionCivil: construccionCivil,
+                       conJornal: conJornal, boletaSemanal: boletaSemanal, adelantoQuincena: adelantoQuincena, diasComerciales: diasComerciales };
   } else {
     window.HRTICcalc = { calcular: calcular, costoLaboral: costoLaboral, gratificacionPeriodo: gratificacionPeriodo, ctsDeposito: ctsDeposito,
                          vacacionesCalc: vacacionesCalc, indemnizacionCalc: indemnizacionCalc, construccionCivil: construccionCivil };
     var arrancar = function () {
       iniciar(); iniciarCosto();
       var consulta = { href: "consultas.html?servicio=escrita#registrar", texto: "Que un especialista revise mi caso" };
-      iniciarBeneficio("f-grati", "s-grati", gratificacionPeriodo, consulta, "calculo-gratificacion");
-      iniciarBeneficio("f-cts", "s-cts", ctsDeposito, consulta, "calculo-cts");
-      iniciarBeneficio("f-vac", "s-vac", vacacionesCalc, consulta, "calculo-vacaciones");
-      iniciarBeneficio("f-ind", "s-ind", indemnizacionCalc, consulta, "calculo-indemnizacion");
+      iniciarBeneficio("f-grati", "s-grati", conJornal(gratificacionPeriodo), consulta, "calculo-gratificacion");
+      iniciarBeneficio("f-cts", "s-cts", conJornal(ctsDeposito), consulta, "calculo-cts");
+      iniciarBeneficio("f-vac", "s-vac", conJornal(vacacionesCalc), consulta, "calculo-vacaciones");
+      iniciarBeneficio("f-ind", "s-ind", conJornal(indemnizacionCalc), consulta, "calculo-indemnizacion");
+      iniciarBoleta("f-sem", "s-sem", boletaSemanal, "calculo-boleta-semanal");
+      iniciarBoleta("f-quin", "s-quin", adelantoQuincena, "calculo-adelanto-quincena");
       iniciarBeneficio("f-cc", "s-cc", construccionCivil, consulta, "calculo-construccion-civil");
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arrancar); else arrancar();

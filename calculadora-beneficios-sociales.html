@@ -54,11 +54,11 @@
 <section class="seccion">
   <div class="contenedor">
     <p class="migas"><a href="guias.html">Guías</a> · Calculadora de beneficios sociales</p>
-    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html" aria-current="page">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-construccion-civil.html">Construcción civil</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
+    <nav class="calc-tabs" aria-label="Calculadoras laborales"><a href="calculadora-beneficios-sociales.html" aria-current="page">Liquidación</a><a href="calculadora-gratificacion.html">Gratificación</a><a href="calculadora-cts.html">CTS</a><a href="calculadora-vacaciones.html">Vacaciones</a><a href="calculadora-indemnizacion.html">Indemnización</a><a href="calculadora-construccion-civil.html">Construcción civil</a><a href="calculadora-boleta-semanal.html">Boleta semanal</a><a href="calculadora-costo-laboral.html">Costo laboral · empresas</a></nav>
     <div class="intro">
       <span class="kicker">Calculadora gratuita</span>
       <h1>Calcula tu liquidación de beneficios sociales</h1>
-      <p class="lead">CTS trunca, gratificación trunca con su bonificación, vacaciones truncas y, si te despidieron, la indemnización. Para el régimen general, la micro y pequeña empresa inscrita en el REMYPE, las trabajadoras y trabajadores del hogar y el régimen agrario. Los obreros de construcción civil tienen su <a href="calculadora-construccion-civil.html">calculadora propia</a>.</p>
+      <p class="lead">CTS trunca, gratificación trunca con su bonificación, vacaciones truncas y, si te despidieron, la indemnización. Para el régimen general, la micro y pequeña empresa inscrita en el REMYPE, las trabajadoras y trabajadores del hogar y el régimen agrario. Si cobras por jornal diario (pago semanal), elige esa opción: los beneficios se calculan con 30 jornales. Los obreros de construcción civil tienen su <a href="calculadora-construccion-civil.html">calculadora propia</a>.</p>
       <p class="calc-nota">Los datos se calculan en tu navegador: no se envían ni se guardan. Remuneración mínima vital: la vigente en tu fecha de cese, S/ 1,230 desde el 1 de octubre de 2026 (D.S. N.º 015-2026-TR) y S/ 1,130 hasta el 30 de setiembre (D.S. N.º 006-2024-TR). Actualizada al 30 de setiembre de 2026.</p>
     </div>
 
@@ -86,15 +86,15 @@
           </div>
         </div>
         <div class="fila">
-          <div class="campo">
+          <div class="campo"><label for="k-tipoPago">¿Cómo se paga la remuneración?</label><select id="k-tipoPago" name="tipoPago"><option value="mensual">Sueldo mensual</option><option value="jornal">Jornal diario (pago semanal)</option></select><span class="ayuda">Con jornal diario, la CTS, la gratificación, las vacaciones y la indemnización se calculan con 30 jornales (D.S. N.º 001-97-TR, arts. 10 y 11). No aplica al régimen agrario ni al del hogar.</span></div><div class="campo">
             <label for="k-sueldo">Remuneración mensual (S/)</label>
             <input id="k-sueldo" name="sueldo" type="number" min="0" step="0.01" inputmode="decimal" required>
             <span class="ayuda">El sueldo bruto de tu boleta, antes de descuentos.</span>
-          </div>
+          </div><div class="campo solo-jornal" hidden><label for="k-jornal">Jornal diario (S/)</label><input id="k-jornal" name="jornal" type="number" min="0" step="0.01" inputmode="decimal"><span class="ayuda">El pago de un día de trabajo, sin el dominical.</span></div>
           
         </div>
         <div class="campo">
-          <label class="opcion"><input type="checkbox" name="minima"> Gano la remuneración mínima vital (la calculadora usa la vigente en cada fecha)</label>
+          <label class="opcion solo-sueldo"><input type="checkbox" name="minima"> Gano la remuneración mínima vital (la calculadora usa la vigente en cada fecha)</label>
           <label class="opcion"><input type="checkbox" name="asignacion"> Recibo asignación familiar (10 % de la RMV: S/ 123.00 desde el 01/10/2026 y S/ 113.00 antes; el régimen MYPE no la incluye entre sus derechos)</label>
           <label class="opcion"><input type="checkbox" name="eps"> Estoy en una EPS (la bonificación es de 6.75 % en lugar de 9 %)</label>
           <label class="opcion"><input type="checkbox" name="menosDe4h"> Trabajo menos de 4 horas diarias en promedio</label>

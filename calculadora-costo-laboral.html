@@ -57,7 +57,7 @@
     <div class="intro">
       <span class="kicker">Calculadora gratuita para empleadores</span>
       <h1>¿Cuánto le cuesta a tu empresa un trabajador al año?</h1>
-      <p class="lead">Lo que la ley suma sobre la remuneración: gratificaciones con su bonificación, CTS, EsSalud o SIS y los seguros obligatorios. Para el régimen general y para la pequeña y la microempresa inscritas en el REMYPE.</p>
+      <p class="lead">Lo que la ley suma sobre la remuneración: gratificaciones con su bonificación, CTS, EsSalud o SIS y los seguros obligatorios. Para el régimen general y para la pequeña y la microempresa inscritas en el REMYPE, con sueldo mensual o con jornal diario y pago semanal.</p>
       <p class="calc-nota">Los datos se calculan en tu navegador: no se envían ni se guardan. Remuneración mínima vital: la vigente a la fecha del cálculo, S/ 1,230 desde el 1 de octubre de 2026 (D.S. N.º 015-2026-TR). Actualizada al 30 de setiembre de 2026.</p>
     </div>
 
@@ -72,11 +72,11 @@
           </select>
           <span class="ayuda">Una empresa solo aplica el régimen MYPE si está inscrita en el REMYPE.</span>
         </div>
-        <div class="campo">
+        <div class="campo"><label for="c-tipoPago">¿Cómo se paga la remuneración?</label><select id="c-tipoPago" name="tipoPago"><option value="mensual">Sueldo mensual</option><option value="jornal">Jornal diario (pago semanal)</option></select><span class="ayuda">Con jornal diario se pagan los 365 días del año (6 jornales y el dominical cada semana, y los feriados) y los beneficios se calculan con 30 jornales.</span></div><div class="campo">
           <label for="c-sueldo">Remuneración mensual del puesto (S/)</label>
           <input id="c-sueldo" name="sueldo" type="number" min="0" step="0.01" inputmode="decimal" required>
           <span class="ayuda">Bruta y fija, a jornada completa. No puede ser menor que la RMV vigente: S/ 1,230 desde el 01/10/2026.</span>
-        </div>
+        </div><div class="campo solo-jornal" hidden><label for="c-jornal">Jornal diario (S/)</label><input id="c-jornal" name="jornal" type="number" min="0" step="0.01" inputmode="decimal"><span class="ayuda">El jornal del puesto, sin el dominical. No puede ser menor que la RMV entre 30 (S/ 41.00 desde el 01/10/2026).</span></div>
         <label class="opcion"><input type="checkbox" name="asignacion"> Paga asignación familiar (S/ 113.00: obligatoria en el régimen general si el trabajador tiene hijos que la generan)</label>
         <label class="opcion no-micro"><input type="checkbox" name="eps"> La empresa tiene EPS (la bonificación extraordinaria es de 6.75 %)</label>
         <div class="campo solo-micro" hidden>
