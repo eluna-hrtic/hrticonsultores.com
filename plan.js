@@ -50,7 +50,7 @@
     $("s-plan-desglose").textContent = "Al mes, con IGV. Es el precio de referencia: la propuesta final se ajusta a su operación (sedes, turnos e integraciones).";
     var an = T.propuesta ? T.propuesta(elegidos(), n.value, "anual") : null, fp = $("s-plan-formas");
     if (fp) fp.textContent = an && an.ok ? "Con pago anual adelantado: desde " + soles(an.cuota_con_igv) + " al mes" + (an.descuento ? " (" + Math.round(an.descuento * 100) + " % menos)" : "") +
-      " e implementación sin costo. También hay descuento con pago semestral adelantado o con permanencia de 6 meses." : "";
+      " e implementación sin costo. También hay descuento con pago semestral adelantado o mensual con contrato anual." : "";
     var regla = r.regla === "minimo" ? (r.micro ? "Incluye el monto mínimo de microempresa." : "Incluye el monto mínimo de su plan.")
       : r.regla === "piso" ? "La factura no baja al crecer: paga lo mismo que con " + r.piso_de + " trabajadores." : "Precio por trabajador según el tramo; el total incluye IGV.";
     $("s-plan-regla").textContent = regla + (r.avisos.length ? " " + r.avisos.join(" ") : "");

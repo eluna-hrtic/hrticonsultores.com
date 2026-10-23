@@ -1,4 +1,5 @@
-/* HRTIC · Tarifario «Arma tu plan» (v1.28, 08/10/2026: formas de pago con descuento y propuesta; 14/10/2026: Cumplimiento con 22 obligaciones y el sondeo de hostigamiento, que sale de Clima). Fuente única de precios: la usa /admin y se copia tal cual a la web
+/* HRTIC · Tarifario «Arma tu plan» (v1.28, 08/10/2026: formas de pago con descuento y propuesta; 14/10/2026: Cumplimiento con 22 obligaciones y el sondeo de hostigamiento, que sale de Clima; 22/10/2026: Cumplimiento con 34 obligaciones, SST, políticas e investigaciones,
+ * y promoción de lanzamiento con contrato anual hasta el 30/11/2026). Fuente única de precios: la usa /admin y se copia tal cual a la web
  * (hrticonsultores.com/assets/js/tarifario.js). Montos en S/ por trabajador al mes, SIN IGV.
  * Estructura del 06/10/2026 (v1.19): el precio de cada módulo es la diferencia entre un paquete y el anterior, así que Asistencia + los
  * módulos de un paquete = el precio exacto de ese paquete; Asistencia siempre incluida; mínimo proporcional en planes mixtos; la factura
@@ -25,7 +26,7 @@
       d: "Planilla, gratificación, CTS, liquidación, quinta, boletas firmadas y archivos de la PLAME",
       p: [10.00, 4.60, 4.60, 3.60, 3.30, 3.00] },
     { k: "seleccion", n: "Selección", grupo: "Talento", minimo: 76,
-      d: "Vacantes con postulación desde el celular, filtros, pruebas, entrevista por competencias y ranking",
+      d: "Vacantes con postulación desde el celular, filtros, prueba de conocimientos, evaluaciones psicolaborales automatizadas con informe al instante (no es un diagnóstico), entrevista por competencias y ranking",
       p: [5.70, 3.40, 2.00, 1.80, 1.70, 1.60] },
     { k: "induccion", n: "Inducción", grupo: "Talento", minimo: 28,
       d: "Plan de 12 actividades con base legal y verificación automática",
@@ -34,7 +35,7 @@
       d: "Objetivos, evaluación 90° a 360°, apuntes de incidentes, actas 1:1, Nine Box y calibración",
       p: [5.70, 3.40, 2.00, 1.80, 1.70, 1.60] },
     { k: "cumplimiento", n: "Cumplimiento laboral", grupo: "Integral", minimo: 133,
-      d: "Autodiagnóstico de 22 obligaciones con evidencia, semáforo, plan de acción, multa potencial SUNAFIL y sondeo anual de hostigamiento sexual",
+      d: "Autodiagnóstico de 34 obligaciones (relaciones laborales, SST, hostigamiento sexual e igualdad salarial) con evidencia, semáforo, plan de acción y multa potencial SUNAFIL; políticas con acuse, investigaciones de hostigamiento con sus plazos, registros de SST y sondeo anual de hostigamiento sexual",
       p: [3.00, 1.70, 1.10, 1.00, 0.90, 0.90] },
     { k: "clima", n: "Clima y convivencia", grupo: "Integral", minimo: 132,
       d: "Encuesta de clima anónima con matriz de prioridades y plan de acción, encuesta de salida, buzón y canal de denuncias",
@@ -65,17 +66,29 @@
   // implementación se cobra. Son excluyentes: el cliente elige una. Punto de equilibrio frente al pago mensual (plan de S/ 290, costos de COSTOS):
   // permanencia de 6 meses ~8,9 %, semestral adelantado ~6,1 %, anual adelantado con implementación sin costo ~0 % (planes chicos) a ~13 %
   // (S/ 2 200 al mes). El descuento de la tabla se reduce solo si el margen del primer año bajaría de MARGEN_MIN (descuentoAplicable).
+  // v1.44 (Ernesto, 22/10/2026): «Mensual, sin permanencia» (0 %) se mantiene: sin descuento ni promoción, el cliente puede irse cualquier mes.
+  // Las otras tres van con contrato anual (permanencia de 12 meses y, si el cliente lo resuelve antes, paga las cuotas que faltan, CP-6):
+  // «Pago mensual con contrato anual: 3 % menos» (antes, con permanencia de 6 meses), semestral adelantado (6 %) y anual adelantado (10 %).
+  // Con contrato anual se espera cobrar los 12 meses. La clave «perm6» se conserva por las propuestas ya guardadas, que mantienen su cálculo.
   var MODALIDADES = [
     { k: "mensual", n: "Mensual, sin permanencia", descuento: 0, meses: 1, permanencia: 0, implementacion: true },
-    { k: "perm6", n: "Mensual con permanencia de 6 meses", descuento: 0.03, meses: 1, permanencia: 6, implementacion: true },
-    { k: "semestral", n: "Semestral adelantado (6 meses)", descuento: 0.06, meses: 6, permanencia: 6, implementacion: true },
-    { k: "anual", n: "Anual adelantado (12 meses)", descuento: 0.10, meses: 12, permanencia: 12, implementacion: false }
+    { k: "perm6", n: "Mensual con contrato anual (12 meses)", descuento: 0.03, meses: 1, permanencia: 12, implementacion: true },
+    { k: "semestral", n: "Semestral adelantado (6 meses) con contrato anual", descuento: 0.06, meses: 6, permanencia: 12, implementacion: true },
+    { k: "anual", n: "Anual adelantado (12 meses) con contrato anual", descuento: 0.10, meses: 12, permanencia: 12, implementacion: false }
   ];
   // Costos variables por cliente para estimar el margen de contribución del primer año (Suposición de HRTIC, 08/10/2026; ajustables):
   // atención y soporte S/ 40 al mes, IA del agente S/ 4 al mes, cobranza 1 % de lo facturado, implementación S/ 200 (horas de HRTIC) y
   // baja mensual esperada de 3 % sin permanencia. Los costos fijos (Google Workspace, plan de IA, Cloudflare) no entran: no cambian por cliente.
   var COSTOS = { atencion_mes: 40, ia_mes: 4, cobranza: 0.01, implementacion: 200, baja_mes: 0.03 };
   var MARGEN_MIN = 0.65;   // margen de contribución mínimo del primer año para aceptar un precio especial por debajo del tarifario
+  // v1.44 · Promoción de lanzamiento de PRAOLIR (decisiones de Ernesto del 22/10/2026). Si el cliente firma un CONTRATO ANUAL (permanencia de
+  // 12 meses) hasta el 30/11/2026: el primer año, 10 % sobre la cuota de lista si hoy no usa ninguna plataforma, o 15 % menos de lo que paga
+  // hoy a su proveedor (con su última factura; si la cuota de lista es menor, se cobra la de lista); y si está entre las 20 primeras empresas
+  // que firman, la implementación es sin costo. Piso de la promoción: la cuota no baja del 85 % de la de lista del plan (se indica por escrito en
+  // la propuesta). No se suma al descuento de la forma de pago: se aplica el mayor de los dos. Excepción con fecha: hasta el 30/11/2026 la
+  // promoción no exige el margen mínimo del primer año (MARGEN_MIN), tampoco en microempresa (Ernesto acepta el margen menor hasta esa fecha).
+  // Si el cliente resuelve el contrato antes del año sin causa imputable a HRTIC, paga las cuotas que faltan (Condiciones Particulares, CP-6).
+  var PROMO_LANZAMIENTO = { vence: "2026-11-30", cupos: 20, permanencia: 12, sin_plataforma: 0.10, migracion: 0.15, piso: 0.85 };
   var INCLUIDO = [
     "Implementación en hasta 15 días hábiles desde que entregas la información completa: configuración, carga del personal e inducción de los usuarios",
     "Agente de cumplimiento: 30 consultas al mes (paquete adicional de 50 consultas por S/ 15 + IGV)",
@@ -127,9 +140,7 @@
   /** Meses que se espera cobrar en el primer año con esa forma de pago (sin permanencia, el cliente puede irse cualquier mes). */
   function mesesEsperados(m) {
     var q = 1 - COSTOS.baja_mes, s = 0, k;
-    if (m.k === "anual") return 12;
-    if (m.k === "semestral") return 6 + 6 * Math.pow(q, 6);
-    if (m.k === "perm6") { s = 6; for (k = 1; k <= 6; k++) s += Math.pow(q, k); return s; }
+    if (m.k === "anual" || m.permanencia >= 12) return 12;   // v1.44: contrato anual (pago mensual con contrato anual o promoción)
     for (k = 0; k < 12; k++) s += Math.pow(q, k); return s;
   }
   /** Margen de contribución esperado del primer año para una cuota mensual (sin IGV) y una forma de pago. */
@@ -143,13 +154,28 @@
    * propone otro precio, la cuota especial. Un precio mayor que el de lista siempre se admite; uno menor solo si el margen del primer año
    * no baja de MARGEN_MIN.
    */
-  function propuesta(modulos, n, k, precio) {
+  function propuesta(modulos, n, k, precio, promo) {
     var q = cotizar(modulos, n), m = modalidad(k || "mensual");
     if (!q.ok) return q;
     if (!m) return { ok: false, error: "Elige la forma de pago." };
-    var d = descuentoAplicable(q.subtotal, m), lista = q.subtotal, calculada = r2(lista * (1 - d)), especial = precio !== undefined && precio !== null && precio !== "" ? r2(+precio) : null, avisos = q.avisos.slice();
+    var especial0 = precio !== undefined && precio !== null && precio !== "";
+    var pr = promo && promo.tipo ? promocion(q.subtotal, m, promo, especial0) : null;
+    if (pr && pr.error) return { ok: false, error: pr.error };
+    if (pr) m = pr.modalidad;
+    var d = descuentoAplicable(q.subtotal, m), lista = q.subtotal, calculada = r2(lista * (1 - d)), especial = especial0 ? r2(+precio) : null, avisos = q.avisos.slice();
     if (especial !== null && !(especial > 0)) return { ok: false, error: "El precio propuesto debe ser un monto mayor que cero." };
+    var aplicada = false;
+    if (pr) {   // no se suma al descuento de la forma de pago: se aplica el mayor
+      if (pr.cuota < calculada) {
+        aplicada = true; d = pr.descuento; calculada = pr.cuota;
+        avisos.push("Promoción de lanzamiento: " + (pr.tipo === "sin_plataforma" ? "10 % de descuento" : pr.cuota > pr.objetivo
+          ? "lo que paga hoy menos 15 % (" + soles(pr.objetivo) + ") queda debajo del piso del plan: se aplica el piso (" + soles(pr.piso) + ", 85 % de la cuota de lista)"
+          : "15 % menos de lo que paga hoy (" + soles(pr.objetivo) + ")") + " en los primeros 12 meses; no se suma al descuento de la forma de pago.");
+      } else if (d > 0) avisos.push("El descuento de la forma de pago (" + pct(d) + ") es igual o mayor que el de la promoción: se aplica ese (no se suman).");
+      else avisos.push("Lo que el cliente paga hoy menos 15 % no baja de la cuota de lista: se cobra la de lista.");
+    }
     var cuota = especial !== null ? especial : calculada, mg = margen(cuota, m), base = margen(lista, modalidad("mensual"));
+    if (pr && mg.pct / 100 < MARGEN_MIN) avisos.push("Promoción de lanzamiento: el margen del primer año queda en " + mg.pct + " % (mínimo " + Math.round(MARGEN_MIN * 100) + " %); se acepta solo hasta el " + fechaPe(PROMO_LANZAMIENTO.vence) + " (decisión de Ernesto del 22/10/2026).");
     if (especial !== null && especial < calculada && mg.pct / 100 < MARGEN_MIN) {
       return { ok: false, error: "Ese precio deja un margen del primer año de " + mg.pct + " % (mínimo " + Math.round(MARGEN_MIN * 100) + " %). Propón " + soles(minimoConMargen(m)) + " o más, o usa otra forma de pago." };
     }
@@ -161,9 +187,38 @@
       lista: lista, calculada: calculada, especial: especial, cuota: cuota, igv: r2(cuota * IGV), cuota_con_igv: r2(cuota * (1 + IGV)),
       factura_periodo: periodo, factura_periodo_con_igv: r2(periodo * (1 + IGV)), implementacion: imp, implementacion_con_igv: r2(imp * (1 + IGV)),
       primer_anio: r2(cuota * 12 + imp), ahorro_anual: r2((lista - cuota) * 12 + (IMPLEMENTACION.monto - imp)), margen: mg,
-      margen_vs_mensual: r2(mg.contribucion - base.contribucion), avisos: avisos };
+      margen_vs_mensual: r2(mg.contribucion - base.contribucion), avisos: avisos,
+      promo: pr ? { tipo: pr.tipo, aplicada: aplicada, descuento: aplicada ? pr.descuento : 0, pago_actual: pr.pago_actual,
+        cuota_objetivo: pr.objetivo, piso: pr.piso, permanencia: PROMO_LANZAMIENTO.permanencia, implementacion_sin_costo: pr.implementacion_sin_costo, vence: PROMO_LANZAMIENTO.vence,
+        factura: pr.factura } : null };
   }
   function pct(x) { return (Math.round(x * 1000) / 10).toString().replace(".", ",") + " %"; }
+  function fechaPe(f) { return String(f || "").split("-").reverse().join("/"); }
+  /**
+   * v1.44 · Promoción de lanzamiento. promo: { tipo: "sin_plataforma" | "migracion", hoy: "AAAA-MM-DD", pago_actual (S/ sin IGV al mes, migración),
+   * factura (serie y número de la última factura del proveedor, migración), cupo (false si ya se usaron los 20 cupos de implementación sin costo) }.
+   * Devuelve la modalidad con permanencia de 12 meses, la cuota de la promoción (con su piso) y si la implementación va sin costo.
+   */
+  function promocion(lista, m, promo, conEspecial) {
+    var P = PROMO_LANZAMIENTO;
+    if (promo.tipo !== "sin_plataforma" && promo.tipo !== "migracion") return { error: "Tipo de promoción no válido." };
+    if (!(m.permanencia >= P.permanencia)) return { error: "La promoción de lanzamiento exige contrato anual: elige el pago mensual con contrato anual, el semestral o el anual adelantado (el mensual sin permanencia va sin descuento ni promoción)." };
+    if (!promo.hoy || promo.hoy > P.vence) return { error: "La promoción de lanzamiento venció el " + fechaPe(P.vence) + ": la propuesta va sin promoción." };
+    if (conEspecial) return { error: "La promoción de lanzamiento no se combina con un precio especial: usa una de las dos." };
+    var pago = null, factura = "";
+    if (promo.tipo === "migracion") {
+      pago = r2(+String(promo.pago_actual || "").replace(",", "."));
+      factura = String(promo.factura || "").trim().slice(0, 80);
+      if (!(pago > 0)) return { error: "Indica lo que el cliente paga hoy al mes a su proveedor, sin IGV, según su última factura." };
+      if (factura.length < 4) return { error: "Indica la serie y el número de la última factura del proveedor actual (sustento del 15 %)." };
+    }
+    var objetivo = promo.tipo === "sin_plataforma" ? r2(lista * (1 - P.sin_plataforma)) : Math.min(lista, r2(pago * (1 - P.migracion)));
+    var piso = r2(lista * P.piso), cuota = Math.max(objetivo, piso), gratis = promo.cupo !== false;
+    return { tipo: promo.tipo, pago_actual: pago, factura: factura, objetivo: objetivo, piso: piso, cuota: cuota, descuento: lista > 0 ? Math.round((1 - cuota / lista) * 10000) / 10000 : 0,
+      implementacion_sin_costo: gratis || !m.implementacion,
+      modalidad: { k: m.k, n: m.n, descuento: m.descuento, meses: m.meses,
+        permanencia: Math.max(m.permanencia, P.permanencia), implementacion: m.implementacion && !gratis } };
+  }
   /** Descuento de la forma de pago, reducido (de 0,5 en 0,5 puntos) si con el de la tabla el margen del primer año baja de MARGEN_MIN. */
   function descuentoAplicable(lista, m) {
     for (var d = m.descuento; d > 0.0001; d = Math.round((d - 0.005) * 1000) / 1000) if (margen(r2(lista * (1 - d)), m).pct / 100 >= MARGEN_MIN) return d;
@@ -186,8 +241,8 @@
   function desde() { return { sin_igv: MICRO.minimo, con_igv: r2(MICRO.minimo * (1 + IGV)) }; }
   function soles(x) { return "S/ " + Number(x).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  g.HRTarifario = { VERSION: "2026-10-14.2", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
-    MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo,
+  g.HRTarifario = { VERSION: "2026-10-22.2", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
+    MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo, PROMO_LANZAMIENTO: PROMO_LANZAMIENTO,
     cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles,
     MODALIDADES: MODALIDADES, COSTOS: COSTOS, MARGEN_MIN: MARGEN_MIN, modalidad: modalidad, margen: margen, propuesta: propuesta, minimoConMargen: minimoConMargen, descuentoAplicable: descuentoAplicable };
 })(typeof window !== "undefined" ? window : globalThis);
