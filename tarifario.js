@@ -1,4 +1,4 @@
-/* HRTIC · Tarifario «Arma tu plan» (v1.28, 08/10/2026: formas de pago con descuento y propuesta; 14/10/2026: Cumplimiento con 22 obligaciones y el sondeo de hostigamiento, que sale de Clima; 22/10/2026: Cumplimiento con 34 obligaciones, SST, políticas e investigaciones,
+/* HRTIC · Tarifario «Arma tu plan» (v1.28, 08/10/2026: formas de pago con descuento y propuesta; 14/10/2026: Cumplimiento con 22 obligaciones y el sondeo de hostigamiento, que sale de Clima; 22/10/2026: Cumplimiento con 34 obligaciones, SST, políticas e investigaciones; 23/10/2026: 37, con Selección y Desempeño,
  * y promoción de lanzamiento con contrato anual hasta el 30/11/2026). Fuente única de precios: la usa /admin y se copia tal cual a la web
  * (hrticonsultores.com/assets/js/tarifario.js). Montos en S/ por trabajador al mes, SIN IGV.
  * Estructura del 06/10/2026 (v1.19): el precio de cada módulo es la diferencia entre un paquete y el anterior, así que Asistencia + los
@@ -35,7 +35,7 @@
       d: "Objetivos, evaluación 90° a 360°, apuntes de incidentes, actas 1:1, Nine Box y calibración",
       p: [5.70, 3.40, 2.00, 1.80, 1.70, 1.60] },
     { k: "cumplimiento", n: "Cumplimiento laboral", grupo: "Integral", minimo: 133,
-      d: "Autodiagnóstico de 34 obligaciones (relaciones laborales, SST, hostigamiento sexual e igualdad salarial) con evidencia, semáforo, plan de acción y multa potencial SUNAFIL; políticas con acuse, investigaciones de hostigamiento con sus plazos, registros de SST y sondeo anual de hostigamiento sexual",
+      d: "Autodiagnóstico de 37 obligaciones (relaciones laborales, SST, hostigamiento sexual, igualdad salarial, selección de personal y datos de postulantes) con la información de todos los módulos contratados, evidencia, semáforo, plan de acción y multa potencial SUNAFIL; modelo de aviso y autorización de datos para postulantes; políticas con acuse, investigaciones de hostigamiento con sus plazos, registros de SST y sondeo anual de hostigamiento sexual",
       p: [3.00, 1.70, 1.10, 1.00, 0.90, 0.90] },
     { k: "clima", n: "Clima y convivencia", grupo: "Integral", minimo: 132,
       d: "Encuesta de clima anónima con matriz de prioridades y plan de acción, encuesta de salida, buzón y canal de denuncias",
