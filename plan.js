@@ -67,3 +67,19 @@
   f.addEventListener("submit", function (e) { e.preventDefault(); calcular(); });
   calcular();
 })();
+
+/* 23/10/2026 · Video de lanzamiento: en celular vertical, la versión 9:16 con su portada; en PC, laptop, tablet horizontal y proyector, la 16:9.
+   El atributo media de <source> lo resuelve en los navegadores actuales; esto cubre la portada y los navegadores que no lo leen. */
+(function () {
+  var v = document.getElementById("video-praolir");
+  if (!v || !window.matchMedia) return;
+  var m = window.matchMedia("(max-width: 767px) and (orientation: portrait)");
+  function ajustar() {
+    var vertical = m.matches, src = vertical ? "/praolir-2026-10-23-lanzamiento-v2.mp4" : "/praolir-lanzamiento-16x9.mp4";
+    v.poster = vertical ? "/praolir-2026-10-23-lanzamiento.jpg" : "/praolir-lanzamiento-poster-16x9.jpg";
+    v.setAttribute("width", vertical ? "1080" : "1920"); v.setAttribute("height", vertical ? "1920" : "1080");
+    if (v.paused && (v.currentSrc || "").indexOf(src) < 0) { v.src = src; v.load(); }
+  }
+  ajustar();
+  if (m.addEventListener) m.addEventListener("change", ajustar); else if (m.addListener) m.addListener(ajustar);
+})();
