@@ -73,7 +73,7 @@
 (function () {
   var v = document.getElementById("video-praolir");
   if (!v || !window.matchMedia) return;
-  var m = window.matchMedia("(max-width: 767px) and (orientation: portrait)");
+  var m = window.matchMedia("(min-width: 1px) and (max-width: 767px) and (orientation: portrait)");
   function ajustar() {
     var vertical = m.matches, src = vertical ? "/praolir-2026-10-23-lanzamiento-v2.mp4" : "/praolir-lanzamiento-16x9.mp4";
     v.poster = vertical ? "/praolir-2026-10-23-lanzamiento.jpg" : "/praolir-lanzamiento-poster-16x9.jpg";
