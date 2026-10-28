@@ -205,7 +205,8 @@
     conocidos.forEach(function (c) { if (c[0].test(ref)) deRef = c[1]; });
     var fuente = (params.get("utm_source") || deRef || "directo").toLowerCase().slice(0, 40);
     var campana = (params.get("utm_campaign") || "").slice(0, 60);
-    o = { fuente: fuente + (campana ? " · " + campana : ""), entrada: pagina };
+    // v1.48: también el medio (utm_medium) y el sitio de procedencia tal cual, para el campo oculto «origen» del formulario de contacto.
+    o = { fuente: fuente + (campana ? " · " + campana : ""), entrada: pagina, medio: (params.get("utm_medium") || "").toLowerCase().slice(0, 30), ref: ref.slice(0, 60) };
     try { sessionStorage.setItem("hrtic_origen", JSON.stringify(o)); } catch (e) { /* sin almacenamiento: igual funciona */ }
     return o;
   })();
@@ -315,11 +316,24 @@
     var t = fc.querySelector('select[name="trabajadores"]');
     if (t) { t.required = emp; if (!emp) t.removeAttribute("aria-invalid"); }
   }
+  // Días desde hoy (en Lima) hasta una fecha «AAAA-MM-DD»; null si no es una fecha que exista.
+  function diasHasta(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    if (!m) return null;
+    var f = Date.UTC(+m[1], +m[2] - 1, +m[3]), x = new Date(f);
+    if (x.getUTCFullYear() !== +m[1] || x.getUTCMonth() !== +m[2] - 1 || x.getUTCDate() !== +m[3]) return null;
+    return (f - Date.parse(new Date(Date.now() - 5 * 3600000).toISOString().slice(0, 10) + "T00:00:00Z")) / 86400000;
+  }
+  var revisarUrgencia = function () {};
+  // v1.48: también la urgencia (inspección en curso y fecha límite). Viajan al inicio del mensaje, así llegan con el servicio de
+  // formularios actual (v1.13), y además como campos propios para el servicio v1.14, que los guarda en columnas (el v1.13 los ignora).
   function prepararContacto(d) {
-    if (d.tipo === "empresa" && (d.trabajadores || d.sector)) {
-      d.mensaje = "Trabajadores: " + (d.trabajadores || "-") + " · Sector: " + (d.sector || "-") + "\n\n" + d.mensaje;
-    }
-    delete d.trabajadores; delete d.sector;
+    var emp = d.tipo === "empresa", partes = [];
+    if (emp && (d.trabajadores || d.sector)) partes.push("Trabajadores: " + (d.trabajadores || "-") + " · Sector: " + (d.sector || "-"));
+    if (emp && d.inspeccion) partes.push("Inspección de SUNAFIL en curso: " + d.inspeccion);
+    if (d.fecha_limite) partes.push("Fecha límite: " + d.fecha_limite.split("-").reverse().join("/"));
+    if (partes.length) d.mensaje = partes.join(" · ") + "\n\n" + d.mensaje;
+    if (!emp) { delete d.trabajadores; delete d.sector; delete d.inspeccion; }
     return d;
   }
   if (fc) { fc.addEventListener("change", perfilContacto); perfilContacto(); }
@@ -332,9 +346,19 @@
       aviso(fc, "info", "Se abrió tu programa de correo con el mensaje listo para enviar.");
       return;
     }
-    if (res && res.ok) { evento("envio-contacto", "Mensaje de contacto enviado"); fc.reset(); aviso(fc, "ok", "Recibimos tu mensaje. Te respondemos al correo que indicaste."); }
+    if (res && res.ok) { evento("envio-contacto", "Mensaje de contacto enviado"); fc.reset(); revisarUrgencia(); aviso(fc, "ok", "Recibimos tu mensaje. Te respondemos al correo que indicaste."); }
     else aviso(fc, "error", "No se pudo enviar. Escríbenos a eluna@hrticonsultores.com.");
-  }, prepararContacto);
+  }, function (d) {
+    // Ronda de corrección (M-7): la fecha límite debe existir y estar a no más de 2 años (el servicio v1.14 aplica la misma regla).
+    var df = diasHasta(d.fecha_limite);
+    if (d.fecha_limite && (df === null || Math.abs(df) > 731)) {
+      var inF = document.getElementById("c-fecha");
+      if (inF) { inF.setAttribute("aria-invalid", "true"); inF.focus(); }
+      aviso(fc, "error", "Revisa la fecha límite: debe ser una fecha real, a no más de 2 años de hoy.");
+      return null;
+    }
+    return prepararContacto(d);
+  });
 
   // Consultas: precio total según el servicio (Ley N.º 29571, art. 4.1); el comprobante define el documento
   var fq = document.getElementById("form-consulta");
@@ -385,14 +409,53 @@
     var selConv = document.getElementById("p-convocatoria");
     var chkCompartir = document.getElementById("p-compartir");
     var txtCompartir = document.getElementById("p-compartir-texto");
+    var casillaCompartir = document.getElementById("p-compartir-casilla");
+    var chkBanco = document.getElementById("p-banco"), casillaBanco = document.getElementById("p-banco-casilla");
+    var selArea = document.getElementById("p-area"), areaOpcional = document.getElementById("p-area-opcional");
+    var selDoc = document.getElementById("p-tipo-doc"), inDoc = document.getElementById("p-doc"), ayudaDoc = document.getElementById("p-doc-ayuda");
     var inCv = document.getElementById("p-cv");
     var TEXTO_BANCO = txtCompartir.innerHTML;
     var TEXTO_CLIENTE = "Autorizo que HRTIC comparta mi CV con la empresa que contrata el proceso al que postulo. Es necesario para postular a esta convocatoria.";
     var tipoConv = function () { var o = selConv.options[selConv.selectedIndex]; return (o && o.getAttribute("data-tipo")) || "banco"; };
+    // Ronda de corrección (decisiones 11, 13 y 14 de Ernesto; auditoría I-3 e I-4). El banco de talento tiene su propia casilla,
+    // opcional, que se oculta si la persona eligió el banco (es lo que pide). El área de interés es obligatoria solo en el banco.
+    // «Proponerme a empresas clientes» supone el banco: en una convocatoria propia de HRTIC aparece solo si marcó el banco.
     var ajustarCompartir = function () {
-      if (tipoConv() === "cliente") { chkCompartir.setAttribute("required", ""); txtCompartir.textContent = TEXTO_CLIENTE; }
-      else { chkCompartir.removeAttribute("required"); chkCompartir.removeAttribute("aria-invalid"); txtCompartir.innerHTML = TEXTO_BANCO; }
+      var tipo = tipoConv(), banco = tipo === "banco";
+      if (casillaBanco && chkBanco) { casillaBanco.hidden = banco; if (banco) chkBanco.checked = false; }
+      if (selArea) {
+        if (banco) selArea.setAttribute("required", ""); else { selArea.removeAttribute("required"); selArea.removeAttribute("aria-invalid"); }
+        if (areaOpcional) areaOpcional.hidden = banco;
+      }
+      if (tipo === "cliente") { chkCompartir.setAttribute("required", ""); txtCompartir.textContent = TEXTO_CLIENTE; if (casillaCompartir) casillaCompartir.hidden = false; }
+      else {
+        chkCompartir.removeAttribute("required"); chkCompartir.removeAttribute("aria-invalid"); txtCompartir.innerHTML = TEXTO_BANCO;
+        var ver = banco || !!(chkBanco && chkBanco.checked);
+        if (casillaCompartir) casillaCompartir.hidden = !ver;
+        if (!ver) chkCompartir.checked = false;
+      }
     };
+    if (chkBanco) chkBanco.addEventListener("change", ajustarCompartir);
+    // Documento de identidad (decisión 14): las mismas reglas que el servicio de formularios v1.14. Se envía en mayúsculas, sin
+    // espacios, puntos ni guiones. El formato del CPP y del PTP no se pudo confirmar en una fuente oficial: regla prudente.
+    var DOCS = {
+      dni: { re: /^\d{8}$/, min: 8, num: true, ayuda: "8 dígitos.", error: "El DNI tiene 8 dígitos, solo números." },
+      ce: { re: /^[A-Z0-9]{9,12}$/, min: 9, num: false, ayuda: "De 9 a 12 letras o números, sin espacios ni guiones.", error: "Revisa el carné de extranjería: tiene de 9 a 12 letras o números." },
+      pasaporte: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el pasaporte.", error: "Copia el número del pasaporte tal como figura: de 6 a 15 letras o números." },
+      cpp: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el carné.", error: "Escribe el número del CPP tal como figura en el carné: de 6 a 15 letras o números." },
+      ptp: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el permiso.", error: "Usa el número del PTP tal como figura en el permiso: de 6 a 15 letras o números." }
+    };
+    var docElegido = function () { return DOCS[selDoc && selDoc.value] || DOCS.dni; };
+    var normalizarDoc = function (v) { return String(v || "").toUpperCase().replace(/[\s.\-]/g, ""); };
+    var ajustarDoc = function () {
+      if (!selDoc || !inDoc) return;
+      var t = docElegido();
+      inDoc.setAttribute("minlength", String(t.min)); inDoc.setAttribute("maxlength", "20");
+      inDoc.setAttribute("inputmode", t.num ? "numeric" : "text"); inDoc.removeAttribute("pattern"); inDoc.removeAttribute("aria-invalid");
+      if (ayudaDoc) ayudaDoc.textContent = t.ayuda;
+    };
+    if (selDoc) selDoc.addEventListener("change", ajustarDoc);
+    ajustarDoc();
     var elegirConv = function (id) {
       for (var i = 0; i < selConv.options.length; i++) if (selConv.options[i].value === id) { selConv.selectedIndex = i; break; }
       ajustarCompartir();
@@ -429,13 +492,20 @@
       if (local) { aviso(fp, "error", "La postulación en línea aún no está conectada. Envía tu CV a eluna@hrticonsultores.com."); return; }
       if (res && res.ok) {
         evento("envio-postulacion-" + tipoConv(), "Postulación enviada");
-        fp.reset(); ajustarCompartir();
+        fp.reset(); ajustarCompartir(); ajustarDoc();
         aviso(fp, "ok", "Recibimos tu postulación N.º " + res.numero + ". Te enviamos la confirmación a tu correo; si no la ves en unos minutos, revisa la carpeta de spam o correo no deseado.");
       } else if (res && res.error === "cv") errorCv("Revisa tu CV: debe ser un archivo PDF de hasta 5 MB.");
       else if (res && res.error === "compartir") { chkCompartir.focus(); aviso(fp, "error", "Para postular a esta convocatoria necesitamos tu autorización para compartir tu CV con la empresa."); }
+      else if (res && (res.error === "documento" || res.error === "dni")) { if (inDoc) { inDoc.setAttribute("aria-invalid", "true"); inDoc.focus(); } aviso(fp, "error", docElegido().error); }
       else if (res && res.error === "limite") aviso(fp, "error", "Recibimos varias postulaciones desde este correo en la última hora. Inténtalo más tarde o escríbenos a eluna@hrticonsultores.com.");
       else aviso(fp, "error", "No se pudo enviar. Envía tu CV a eluna@hrticonsultores.com.");
     }, function (d) {
+      // Ronda de corrección (decisión 14): tipo y número de documento, validado según el tipo.
+      if (selDoc && inDoc) {
+        var t = docElegido();
+        d.tipo_documento = selDoc.value; d.documento = normalizarDoc(d.documento);
+        if (!t.re.test(d.documento)) { inDoc.setAttribute("aria-invalid", "true"); inDoc.focus(); aviso(fp, "error", t.error); return null; }
+      }
       var f = inCv.files && inCv.files[0];
       if (!f) return errorCv("Adjunta tu CV en PDF.");
       if (!/\.pdf$/i.test(f.name) && f.type !== "application/pdf") return errorCv("Tu CV debe estar en PDF. Guárdalo como PDF desde Word o Google Docs y vuelve a adjuntarlo.");
@@ -566,6 +636,192 @@
     dd.textContent = dias === 0 ? "Hoy es el último día" : dias === 1 ? "1 día" : dias + " días";
     caja.hidden = false;
   });
+
+  // ---------- Web v1.48 (28/10/2026): portada con demostración, situaciones, recorrido y contacto que califica ----------
+
+  // «Lo que preguntan las empresas en el Perú»: la caja escribe sola cada consulta y resalta en la lista dónde se responde.
+  // Con «reducir movimiento» no escribe ni cambia sola (queda la primera consulta). Se pausa con el cursor o el foco encima, fuera de
+  // pantalla y con la pestaña oculta. La caja es decorativa (aria-hidden): los lectores de pantalla y el teclado usan la lista.
+  // Ronda de corrección (M-1, WCAG 2.2.2): botón «Pausar»/«Reanudar» y una sola vuelta por las consultas; al terminarla, la caja
+  // queda quieta en la primera. El cursor deja de parpadear a los 5 segundos (CSS).
+  var escribe = document.querySelector("[data-escribe]");
+  if (escribe) (function () {
+    var caja = escribe.querySelector("[data-escribe-caja]"), txt = escribe.querySelector("[data-escribe-texto]");
+    var lista = escribe.querySelector(".buscador-lista"), boton = escribe.querySelector("[data-escribe-pausa]");
+    var enlaces = Array.prototype.slice.call(escribe.querySelectorAll(".buscador-lista a"));
+    if (!caja || !txt || !enlaces.length) return;
+    escribe.addEventListener("click", function (e) {
+      var a = e.target.closest ? e.target.closest("a") : null;
+      if (a) evento("clic-preguntan-" + (enlaces.indexOf(a) + 1 || "caja"), "Consulta de la portada");
+    });
+    var i = 0, pos = 0, fase = "escribe", pausa = false, visible = true, reloj = null, detenido = false, escritas = 0;
+    var frase = function () { return enlaces[i].querySelector(".q").textContent; };
+    var marcar = function () {
+      enlaces.forEach(function (a, k) { a.classList.toggle("activa", k === i); });
+      caja.setAttribute("href", enlaces[i].getAttribute("href"));
+      if (enlaces[i].target) { caja.target = enlaces[i].target; caja.rel = "noopener"; } else { caja.removeAttribute("target"); caja.removeAttribute("rel"); }
+    };
+    if (quieto) { marcar(); enlaces[0].classList.remove("activa"); return; }
+    var parar = function () { if (reloj) { clearTimeout(reloj); reloj = null; } };
+    var rotular = function () {
+      if (!boton) return;
+      var t = detenido ? "Reanudar" : "Pausar";
+      boton.textContent = t; boton.setAttribute("aria-label", t + " la animación de las consultas");
+    };
+    var completa = function () { pos = frase().length; txt.textContent = frase(); fase = "lee"; };
+    var paso = function () {
+      reloj = null;
+      if (pausa || detenido || !visible || document.hidden) return;
+      var f = frase(), espera = 55;
+      if (fase === "escribe") { pos += 1; txt.textContent = f.slice(0, pos); if (pos >= f.length) { fase = "lee"; espera = 2600; escritas += 1; } }
+      else if (fase === "lee") {
+        if (escritas >= enlaces.length) { i = 0; marcar(); completa(); detenido = true; rotular(); return; }   // una sola vuelta
+        fase = "borra"; espera = 30;
+      }
+      else {
+        pos -= 1; txt.textContent = f.slice(0, Math.max(pos, 0)); espera = 22;
+        if (pos <= 0) { i = (i + 1) % enlaces.length; marcar(); fase = "escribe"; espera = 380; }
+      }
+      reloj = setTimeout(paso, espera);
+    };
+    var seguir = function () { if (!reloj && !pausa && !detenido && visible && !document.hidden) reloj = setTimeout(paso, 400); };
+    // Al pasar el cursor o el foco por una consulta de la lista, la caja la muestra completa.
+    enlaces.forEach(function (a, k) {
+      var mostrar = function () { parar(); i = k; marcar(); completa(); };
+      a.addEventListener("mouseenter", mostrar); a.addEventListener("focus", mostrar);
+    });
+    [caja, lista].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener("mouseenter", function () { pausa = true; parar(); });
+      el.addEventListener("mouseleave", function () { pausa = false; seguir(); });
+    });
+    if (lista) {
+      lista.addEventListener("focusin", function () { pausa = true; parar(); });
+      lista.addEventListener("focusout", function () { pausa = false; seguir(); });
+    }
+    if (boton) {
+      boton.hidden = false;
+      boton.addEventListener("click", function () {
+        detenido = !detenido;
+        if (detenido) parar(); else { if (escritas >= enlaces.length) escritas = 0; seguir(); }
+        rotular();
+      });
+    }
+    document.addEventListener("visibilitychange", function () { if (document.hidden) parar(); else seguir(); });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) seguir(); else parar(); }).observe(escribe);
+    }
+    txt.textContent = ""; marcar(); seguir();
+  })();
+
+  // «Elija su situación»: cada título pasa a ser un botón y se ve un caso a la vez (sin JavaScript se ven los cinco).
+  // Los casos del recuadro «Nos buscan cuando…» abren su detalle y llevan hasta él.
+  var sits = document.querySelector("[data-situaciones]");
+  if (sits) (function () {
+    var botones = [];
+    Array.prototype.forEach.call(sits.querySelectorAll(".sit-titulo"), function (h) {
+      var panel = h.nextElementSibling;
+      if (!panel || !panel.id) return;
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "sit-boton"; b.id = panel.id + "-boton"; b.setAttribute("aria-controls", panel.id);
+      while (h.firstChild) b.appendChild(h.firstChild);
+      h.appendChild(b);
+      panel.setAttribute("role", "region"); panel.setAttribute("aria-labelledby", b.id);
+      b.addEventListener("click", function () { abrir(panel.id); evento("situacion-" + panel.id.replace(/^sit-/, ""), "Situación de la portada"); });
+      botones.push(b);
+    });
+    if (!botones.length) return;
+    function abrir(id) {
+      botones.forEach(function (b) {
+        var si = b.getAttribute("aria-controls") === id;
+        b.setAttribute("aria-expanded", si ? "true" : "false");
+        document.getElementById(b.getAttribute("aria-controls")).hidden = !si;
+      });
+    }
+    sits.setAttribute("data-listo", "");
+    var desdeHash = function () { var x = location.hash && document.getElementById(location.hash.slice(1)); return x && x.classList.contains("sit-panel") ? x.id : ""; };
+    abrir(desdeHash() || botones[0].getAttribute("aria-controls"));
+    window.addEventListener("hashchange", function () { var id = desdeHash(); if (id) abrir(id); });
+    document.querySelectorAll("a[data-situacion]").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        var id = (a.getAttribute("href") || "").replace(/^#/, ""), panel = document.getElementById(id);
+        if (!panel) return;
+        e.preventDefault();
+        abrir(id);
+        var b = document.getElementById(id + "-boton");
+        var dosColumnas = window.matchMedia && window.matchMedia("(min-width: 900px)").matches;
+        var destino = dosColumnas ? document.getElementById("situaciones") : b;
+        if (destino) destino.scrollIntoView({ behavior: quieto ? "auto" : "smooth", block: "start" });
+        if (b) b.focus({ preventScroll: true });
+        if (history.replaceState) history.replaceState(null, "", "#" + id);
+        evento("situacion-portada-" + id.replace(/^sit-/, ""), "Situación desde el recuadro de la portada");
+      });
+    });
+  })();
+
+  // «Un mes en su empresa»: el momento que cruza la línea de lectura se ilumina y la maqueta muestra su pantalla. Lo mueve el
+  // desplazamiento de la persona, nunca un temporizador; con «reducir movimiento» el cambio es inmediato (sin fundido, por CSS).
+  var rec = document.querySelector("[data-recorrido]");
+  if (rec) (function () {
+    var sec = rec.closest(".recorrido") || rec, maqueta = rec.querySelector(".recorrido-maqueta");
+    var pasos = Array.prototype.slice.call(rec.querySelectorAll(".recorrido-paso"));
+    var pantallas = Array.prototype.slice.call(rec.querySelectorAll(".pantalla"));
+    if (!pasos.length || pantallas.length !== pasos.length) return;
+    sec.setAttribute("data-listo", "");
+    var actual = -1, pendiente = false, angostoMq = window.matchMedia ? window.matchMedia("(max-width: 900px)") : null;
+    var activar = function (k) {
+      if (k === actual) return;
+      actual = k;
+      pasos.forEach(function (p, j) { p.classList.toggle("activo", j === k); });
+      pantallas.forEach(function (p, j) { p.classList.toggle("activa", j === k); });
+    };
+    // Ronda de corrección (I-2 y M-8): en el celular la maqueta queda fija arriba solo si debajo quedan al menos 250 px para leer
+    // (360×740 y más altos). Con el celular en horizontal o en pantallas bajas (740×360, 844×390, 375×667, 320×568) va antes de los
+    // momentos, sin quedar fija, y los momentos se leen completos, sin atenuar. 76 px = alto de la cabecera fija (styles.css).
+    var estatico = false;
+    var ajustarFija = function () {
+      var e = false;
+      if (angostoMq && angostoMq.matches && maqueta) {
+        var vh = window.innerHeight, libre = vh - 76 - maqueta.offsetHeight;
+        e = libre < 250;
+      }
+      if (e !== estatico) { estatico = e; sec.classList.toggle("recorrido-estatico", e); }
+    };
+    var medir = function () {
+      pendiente = false;
+      var vh = window.innerHeight, linea = vh * 0.5, k = 0;
+      // En el celular, con la maqueta fija arriba, el momento se activa al entrar en el primer tercio del espacio libre debajo de ella.
+      if (angostoMq && angostoMq.matches && maqueta && !estatico) { var piso = maqueta.getBoundingClientRect().bottom; linea = piso + Math.max(vh - piso, 0) * 0.35; }
+      pasos.forEach(function (p, j) { if (p.getBoundingClientRect().top <= linea) k = j; });
+      activar(k);
+    };
+    var pedir = function () { if (!pendiente) { pendiente = true; requestAnimationFrame(medir); } };
+    window.addEventListener("scroll", pedir, { passive: true });
+    window.addEventListener("resize", function () { ajustarFija(); pedir(); });
+    ajustarFija();
+    medir();
+  })();
+
+  // Contacto que califica: urgencia (inspección en curso, fecha límite) y origen oculto (campaña o red de llegada).
+  // El origen sale de lo que ya guarda esta pestaña (utm o sitio de procedencia, y la primera página): no usa cookies.
+  document.querySelectorAll('form input[type="hidden"][name="origen"]').forEach(function (h) {
+    h.value = [origen.fuente, origen.medio ? "medio " + origen.medio : "", origen.ref && origen.fuente.indexOf(origen.ref) !== 0 ? "desde " + origen.ref : "",
+      "entrada " + origen.entrada].filter(Boolean).join(" · ").slice(0, 200);
+  });
+  // Ronda de corrección: sin opción marcada de antemano en «¿Hay una inspección…?» (M-2) y con un aviso propio si la fecha ya pasó (M-3).
+  var urgente = document.getElementById("c-urgente"), vencido = document.getElementById("c-vencido");
+  if (fc && urgente) (function () {
+    var fecha = document.getElementById("c-fecha");
+    revisarUrgencia = function () {
+      var emp = !!fc.querySelector('input[name="tipo"][value="empresa"]:checked');
+      var insp = emp && !!fc.querySelector('input[name="inspeccion"][value="Sí"]:checked');
+      var dias = fecha ? diasHasta(fecha.value) : null, ok = dias !== null && Math.abs(dias) <= 731;
+      if (fecha) fecha.removeAttribute("aria-invalid");
+      urgente.hidden = !(insp || (ok && dias >= 0 && dias <= 5));
+      if (vencido) vencido.hidden = !(ok && dias < 0);
+    };
+    fc.addEventListener("change", revisarUrgencia); if (fecha) fecha.addEventListener("input", revisarUrgencia); revisarUrgencia();
+  })();
 
   // Libro de Reclamaciones
   var fl = document.getElementById("form-libro");

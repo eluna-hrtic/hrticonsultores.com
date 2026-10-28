@@ -1088,3 +1088,234 @@ main > :first-child h1 .script { animation: hrtic-escribe 1.2s .6s cubic-bezier(
   .cabecera .marca small { display: none; }   /* en celular el nombre largo chocaba con «Pide tu demo» (320 px) o bajaba a 3 líneas */
 }
 @media (max-width: 360px) { .cabecera .contenedor { gap: 8px; } .cabecera .demo-corto { padding: 8px 10px; font-size: .8rem; } }
+
+/* ---------- Web v1.48 (28/10/2026): mejoras aprobadas por Ernesto a partir del análisis de urbanmedia ----------
+   Fondo blanco, cian solo como acento, enlaces en --cian-texto y nada se mueve solo con «reducir movimiento».
+   Los bloques «solo:x» salen únicamente en las páginas con «@estilos x» (construir.py). */
+
+/* solo:empleos */
+/* Nota bajo el botón de una convocatoria que se postula en PRAOLIR. */
+.conv-plataforma { margin: 6px 0 0; font-size: .8rem; color: var(--texto-3); }
+/* Ronda de corrección: nota de los campos obligatorios del formulario de postulación (Ley N.º 29733, art. 18). */
+.form-obligatorios { margin: 0; font-size: .82rem; color: var(--texto-3); }
+/* /solo:empleos */
+
+/* solo:portada */
+/* «Lo que preguntan las empresas en el Perú»: caja que escribe sola + lista de consultas con su respuesta. */
+.preguntan-rejilla { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 40px; align-items: center; }
+.preguntan .intro { margin-bottom: 0; }
+.buscador { display: grid; gap: 14px; }
+.buscador-caja {
+  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 14px 20px; border-radius: 999px;
+  background: #fff; border: 1.5px solid var(--borde); box-shadow: var(--sombra); color: var(--grafito); text-decoration: none;
+  font-size: clamp(1rem, 2.2vw, 1.2rem); font-weight: 500;
+}
+.buscador-caja:hover { border-color: var(--cian); color: var(--grafito); }
+/* Ronda de corrección (M-1): botón para pausar o reanudar la caja, al lado de ella. */
+.buscador { grid-template-columns: minmax(0, 1fr); }
+.buscador-fila { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.buscador-fila .buscador-caja { flex: 1; min-width: 0; }
+.buscador-pausa {
+  flex: none; min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--borde); background: #fff; cursor: pointer;
+  font: inherit; font-size: .85rem; font-weight: 600; color: var(--cian-texto);
+}
+.buscador-pausa:hover { border-color: var(--cian); }
+.buscador-caja svg { width: 22px; height: 22px; flex: none; color: var(--cian-texto); }
+.buscador-texto { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.buscador-cursor { flex: none; width: 2px; height: 1.2em; background: var(--cian); margin-left: -8px; animation: hrtic-cursor 1s steps(2) 5; }
+@keyframes hrtic-cursor { 50% { opacity: 0; } }
+.buscador-lista { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.buscador-lista a {
+  display: grid; gap: 2px; height: 100%; padding: 10px 14px; border-radius: var(--radio-sm); border: 1px solid var(--borde);
+  background: #fff; text-decoration: none; color: var(--grafito); transition: border-color .15s ease, background-color .15s ease;
+}
+.buscador-lista .q { font-weight: 500; font-size: .93rem; }
+.buscador-lista .destino { font-size: .8rem; font-weight: 600; color: var(--cian-texto); }
+.buscador-lista a:hover, .buscador-lista a.activa { border-color: var(--cian); background: var(--cian-suave); }
+@media (max-width: 960px) { .preguntan-rejilla { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
+@media (max-width: 560px) { .buscador-lista { grid-template-columns: 1fr; gap: 6px; } .buscador-lista a { padding: 8px 12px; } .buscador-lista .q { font-size: .9rem; } .buscador-caja { border-radius: 18px; padding: 12px 16px; min-height: 56px; } }
+
+/* «Elija su situación»: sin JavaScript se ven las cinco; con JavaScript, una a la vez (acordeón en celular, dos columnas en computadora). */
+.situaciones { display: grid; gap: 12px; }
+.sit-titulo { margin: 0; font-size: 1.02rem; }
+.sit-titulo .sit-boton {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; text-align: left; cursor: pointer;
+  font: inherit; font-weight: 600; color: var(--grafito); background: #fff; border: 1.5px solid var(--borde); border-radius: var(--radio-sm);
+  padding: 14px 18px;
+}
+.sit-titulo .sit-boton::after { content: "+"; flex: none; font-weight: 400; font-size: 1.4rem; line-height: 1; color: var(--cian-texto); }
+.sit-titulo .sit-boton[aria-expanded="true"] { border-color: var(--cian); background: var(--cian-suave); }
+.sit-titulo .sit-boton[aria-expanded="true"]::after { content: "–"; }
+.sit-titulo .sit-boton:hover { border-color: var(--cian); }
+.sit-panel { background: var(--fondo-2); border-radius: var(--radio); padding: 24px 26px; }
+.sit-titulo, .sit-panel, #situaciones { scroll-margin-top: 92px; }
+.sit-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; margin: 0; }
+.sit-datos dt { font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--cian-texto); margin-bottom: 4px; }
+.sit-datos dd { margin: 0; font-size: .93rem; color: var(--texto-2); }
+.sit-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 22px 0 0; }
+.sit-acciones a:not(.boton) { font-weight: 600; }
+@media (min-width: 900px) {
+  .situaciones[data-listo] { grid-template-columns: minmax(250px, .8fr) minmax(0, 1.6fr); column-gap: 28px; align-items: start; }
+  .situaciones[data-listo] .sit-titulo { grid-column: 1; }
+  .situaciones[data-listo] .sit-panel { grid-column: 2; grid-row: 1 / span 6; }
+  .situaciones[data-listo] .sit-titulo .sit-boton::after { content: "→"; font-size: 1.1rem; }
+  .situaciones[data-listo] .sit-titulo .sit-boton[aria-expanded="true"]::after { content: "→"; }
+}
+@media (max-width: 640px) { .sit-datos { grid-template-columns: 1fr; } .sit-panel { padding: 20px 18px; } }
+
+/* «Un mes en su empresa»: momentos a la izquierda, maqueta fija a la derecha que cambia con el desplazamiento. */
+.recorrido-rejilla { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.recorrido-pasos { list-style: none; padding: 0; margin: 0; }
+.recorrido-paso { padding: 22px 0 22px 22px; border-left: 3px solid var(--borde); }
+.recorrido[data-listo] .recorrido-paso { min-height: 52vh; display: flex; flex-direction: column; justify-content: center; }
+/* El momento inactivo se aclara con un gris que mantiene 4.5:1 sobre blanco (no con opacidad, que bajaría el contraste). */
+.recorrido[data-listo] .recorrido-paso:not(.activo) h3, .recorrido[data-listo] .recorrido-paso:not(.activo) p { color: #6B6770; }
+.recorrido-paso h3, .recorrido-paso p { transition: color .3s ease; }
+.recorrido-paso.activo { border-left-color: var(--cian); }
+.recorrido-hora { margin: 0 0 4px; font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--cian-texto); }
+.recorrido-paso h3 { font-size: clamp(1.15rem, 2vw, 1.45rem); margin: 0 0 8px; }
+.recorrido-paso p { color: var(--texto-2); margin: 0 0 8px; max-width: 520px; }
+.recorrido-paso .recorrido-norma { font-size: .8rem; color: var(--texto-3); margin: 0; }
+.recorrido-maqueta { position: sticky; top: 104px; width: 100%; max-width: 620px; justify-self: end; }
+.maqueta { border-radius: 22px; background: var(--grafito); padding: 12px; box-shadow: 0 18px 40px rgba(38, 35, 37, .18); }
+.maqueta-barra { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 2px 8px 10px; color: #fff; font-size: .8rem; }
+.maqueta-barra .praolir { font-size: .9rem; }
+.maqueta-ficticio { font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--grafito); background: #fff; border-radius: 999px; padding: 3px 10px; }
+/* Las seis pantallas comparten la misma celda: la maqueta toma la altura de la más alta y ninguna se corta. */
+.maqueta-pantallas { display: grid; background: #fff; border-radius: 14px; overflow: hidden; }
+.pantalla { grid-area: 1 / 1; padding: 22px 24px; opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility .35s; color: var(--grafito); font-size: .9rem; }
+.pantalla.activa { opacity: 1; visibility: visible; }
+.p-sup { margin: 0 0 10px; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--texto-3); }
+.p-hora { margin: 6px 0 0; font-size: 3.4rem; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.p-fecha { margin: 2px 0 18px; color: var(--texto-2); }
+.p-ok { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: #E8F5EE; }
+.p-ok strong, .p-ok span { display: block; }
+.p-ok span { font-size: .82rem; color: var(--texto-2); }
+.p-check { width: 30px; height: 30px; border-radius: 50%; background: var(--ok); flex: none; position: relative; }
+.p-check::after, .p-lista li.ok::before { content: ""; position: absolute; left: 10px; top: 7px; width: 7px; height: 12px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+.p-nota { margin: 14px 0 0; font-size: .8rem; color: var(--texto-3); }
+.p-lista { list-style: none; display: grid; gap: 8px; margin: 0; }
+.p-lista li { position: relative; display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px 9px 40px; border-radius: 10px; background: var(--fondo-2); font-weight: 500; font-size: .86rem; }
+.p-lista li span { color: var(--texto-3); font-weight: 400; text-align: right; }
+.p-lista li.ok::before { left: 17px; top: 50%; margin-top: -8px; width: 6px; height: 11px; border-color: var(--ok); }
+.p-enlace { margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 1.5px dashed var(--cian); }
+.p-enlace strong, .p-enlace span { display: block; }
+.p-enlace span { font-size: .8rem; color: var(--texto-3); }
+.p-monto { margin: 4px 0 2px; font-size: 2.6rem; font-weight: 700; line-height: 1.1; }
+.p-quien { margin: 0 0 14px; color: var(--texto-2); }
+.p-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 6px 0 16px; }
+.p-kpis div { padding: 12px; border-radius: 12px; background: var(--fondo-2); }
+.p-kpis strong { display: block; font-size: 1.5rem; line-height: 1.1; }
+.p-kpis span { font-size: .78rem; color: var(--texto-3); }
+.p-barra { height: 10px; border-radius: 99px; background: var(--fondo-2); overflow: hidden; }
+.p-barra span { display: block; height: 100%; width: 100%; background: var(--cian); border-radius: 99px; }
+.p-tabla { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.p-tabla td { padding: 8px 0; border-bottom: 1px solid var(--borde); }
+.p-tabla td:last-child { text-align: right; font-weight: 600; white-space: nowrap; }
+.p-tabla tr.total td { border-bottom: 0; padding-top: 12px; font-size: 1.05rem; font-weight: 700; }
+.p-ninebox { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 4px 0 8px; }
+.p-ninebox span { display: grid; place-items: center; height: 46px; border-radius: 8px; background: var(--fondo-2); font-weight: 700; font-size: 1.05rem; }
+.p-ninebox span.alto { background: var(--cian-suave); outline: 2px solid var(--cian); }
+.p-ejes { display: flex; justify-content: space-between; margin: 0; font-size: .75rem; color: var(--texto-3); }
+.recorrido-cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 0; }
+@media (max-width: 900px) {
+  .recorrido-rejilla { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .recorrido-maqueta { order: -1; top: 76px; z-index: 3; padding: 8px 0 12px; background: #fff; }
+  .maqueta { padding: 8px; border-radius: 18px; }
+  .pantalla { padding: 14px 16px; font-size: .84rem; }
+  .p-hora { font-size: 2.4rem; } .p-fecha { margin-bottom: 10px; } .p-monto { font-size: 1.9rem; }
+  .p-lista { gap: 5px; } .p-lista li { padding: 6px 10px 6px 34px; font-size: .8rem; } .p-lista li.ok::before { left: 14px; }
+  .p-kpis strong { font-size: 1.15rem; } .p-nota { margin-top: 8px; }
+  .p-ninebox span { height: 30px; font-size: .9rem; }
+  .p-enlace { margin-top: 8px; padding: 7px 10px; } .p-sup { margin-bottom: 6px; } .p-kpis { margin: 4px 0 10px; } .p-kpis div { padding: 8px; }
+  .recorrido[data-listo] .recorrido-paso { min-height: 48vh; justify-content: flex-start; padding-top: 28px; }
+}
+/* Sin JavaScript (o con el recorrido sin iniciar) la maqueta muestra la primera pantalla y no queda fija en el celular. */
+@media (max-width: 900px) { .recorrido:not([data-listo]) .recorrido-maqueta { position: static; } }
+/* Ronda de corrección (I-2 y M-8): si debajo de la maqueta fija no queda espacio para leer (celular en horizontal o pantalla baja),
+   main.js marca «recorrido-estatico»: la maqueta va antes de los momentos sin quedar fija y los momentos se leen completos. Sin
+   JavaScript, la regla de alto mínimo hace lo mismo en las pantallas de menos de 600 px de alto. */
+@media (max-width: 900px) {
+  .recorrido.recorrido-estatico .recorrido-maqueta { position: static; }
+  .recorrido.recorrido-estatico[data-listo] .recorrido-paso { min-height: 0; padding-top: 18px; }
+  .recorrido.recorrido-estatico[data-listo] .recorrido-paso:not(.activo) h3 { color: var(--grafito); }
+  .recorrido.recorrido-estatico[data-listo] .recorrido-paso:not(.activo) p { color: var(--texto-2); }
+  .recorrido.recorrido-estatico[data-listo] .recorrido-paso:not(.activo) .recorrido-norma { color: var(--texto-3); }
+}
+@media (max-width: 900px) and (max-height: 599px) { .recorrido-maqueta { position: static; } }
+
+/* Preguntas frecuentes de la portada (mismo texto que el FAQPage). */
+.preguntas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; }
+.pregunta { padding: 22px 24px; border-radius: var(--radio); border: 1px solid var(--borde); background: #fff; }
+.pregunta h3 { font-size: 1.02rem; margin: 0 0 8px; }
+.pregunta p { color: var(--texto-2); font-size: .93rem; margin: 0 0 10px; }
+.pregunta .ir { font-weight: 600; font-size: .9rem; }
+@media (max-width: 760px) { .preguntas { grid-template-columns: 1fr; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .buscador-cursor { animation: none; display: none; }
+  .pantalla { transition: none; }
+}
+/* /solo:portada */
+
+/* solo:empresas */
+/* «Ejemplo de entregable» en cada línea y «Cuentas claras». */
+.ejemplo-entregable { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 14px 16px; border-radius: var(--radio-sm); border: 1.5px dashed var(--cian); background: #fff; text-decoration: none; color: var(--grafito); }
+.ejemplo-entregable:hover { background: var(--cian-suave); color: var(--grafito); }
+.ejemplo-entregable svg { width: 28px; height: 28px; flex: none; color: var(--cian-texto); }
+.ejemplo-entregable strong { display: block; font-size: .95rem; }
+.ejemplo-entregable small { display: block; font-size: .8rem; color: var(--texto-3); }
+.cuentas { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.cuentas > div { padding: 28px; border-radius: var(--radio); background: #fff; border: 1px solid var(--borde); }
+.cuentas > div:first-child { border-top: 4px solid var(--cian); }
+.cuentas > div:last-child { border-top: 4px solid var(--grafito); }
+.cuentas h3 { font-size: 1.1rem; margin-bottom: 14px; }
+.cuentas .lista-check li { font-size: .93rem; color: var(--texto-2); }
+.cuentas .lista-check strong { color: var(--grafito); }
+.cuentas-nota { margin: 18px 0 0; font-size: .9rem; color: var(--texto-2); max-width: 900px; }
+@media (max-width: 760px) { .cuentas { grid-template-columns: 1fr; } .cuentas > div { padding: 22px 20px; } }
+/* /solo:empresas */
+
+/* solo:muestras */
+/* Página de ejemplos de entregables: cada muestra parece una hoja, con el sello «Muestra con datos ficticios». */
+.muestras-indice { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 8px; }
+.muestras-indice a { display: inline-block; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--borde); text-decoration: none; font-size: .88rem; font-weight: 500; }
+.muestras-indice a:hover { border-color: var(--cian); }
+.hoja-muestra { position: relative; margin: 0 0 40px; padding: 34px clamp(18px, 4vw, 44px) 30px; background: #fff; border: 1px solid var(--borde); border-radius: 6px; box-shadow: var(--sombra); scroll-margin-top: 96px; }
+/* Informativo 12 de la auditoría: marca de agua diagonal en pantalla y al imprimir, para que un recorte no pase por un documento real.
+   Gris muy claro (#EFEDF2): el texto encima conserva su contraste. */
+.hoja-muestra { background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='560'%20height='340'%3E%3Ctext%20x='280'%20y='178'%20fill='%23EFEDF2'%20font-family='Arial,Helvetica,sans-serif'%20font-size='26'%20font-weight='700'%20text-anchor='middle'%20transform='rotate(-24%20280%20170)'%3EMUESTRA%20%C2%B7%20DATOS%20FICTICIOS%3C/text%3E%3C/svg%3E"); background-repeat: repeat; }
+.sello-muestra { display: inline-block; margin: 0 0 14px; padding: 5px 12px; border: 2px solid var(--error); border-radius: 6px; color: var(--error); font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.hoja-cabeza { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 2px solid var(--grafito); font-size: .82rem; color: var(--texto-3); }
+.hoja-cabeza strong { color: var(--grafito); }
+.hoja-muestra h2 { font-size: clamp(1.25rem, 2.4vw, 1.6rem); margin-bottom: 6px; }
+.hoja-muestra .hoja-sub { color: var(--texto-2); margin-bottom: 18px; }
+.tabla-muestra { width: 100%; min-width: 680px; border-collapse: collapse; font-size: .86rem; }
+.tabla-muestra.angosta { min-width: 520px; }
+.tabla-muestra.ancha { min-width: 780px; }
+.tabla-muestra th, .tabla-muestra td { padding: 9px 10px; border: 1px solid var(--borde); text-align: left; vertical-align: top; }
+.tabla-muestra th { background: var(--fondo-2); font-size: .76rem; letter-spacing: .04em; text-transform: uppercase; color: var(--grafito); }
+.tabla-muestra td.num { text-align: right; white-space: nowrap; }
+.nivel { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: .74rem; font-weight: 700; white-space: nowrap; }
+.nivel-alto { background: #FDE8E7; color: #8F1D14; }
+.nivel-medio { background: #FFF1D6; color: #7A4A00; }
+.nivel-bajo { background: #E8F5EE; color: #145C38; }
+.hoja-nota { margin: 14px 0 0; font-size: .82rem; color: var(--texto-3); }
+.hoja-muestra .tabla-scroll { overflow-x: auto; }
+@media print { .cabecera, .pie, .muestras-indice, .wsp-flotante { display: none !important; } .hoja-muestra { box-shadow: none; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+/* /solo:muestras */
+
+/* solo:contacto */
+/* Contacto que califica: urgencia, pasos que siguen y compromiso de respuesta. */
+.pasos-contacto { margin-top: 18px; }
+/* En computadora, los pasos van debajo de los medios, al lado del formulario; en el celular, después del formulario. */
+@media (min-width: 881px) { .rejilla-contacto:has(> .pasos-contacto) { grid-template-rows: auto 1fr; } .rejilla-contacto > .medios { grid-column: 1; grid-row: 1; } .rejilla-contacto > form { grid-column: 2; grid-row: 1 / span 2; }
+  .rejilla-contacto > .pasos-contacto { grid-column: 1; grid-row: 2; margin-top: 0; align-self: start; } }
+.fila-urgencia { align-items: start; }
+.pasos-contacto ol { list-style: none; counter-reset: pc; display: grid; gap: 14px; margin: 0; padding: 0; }
+.pasos-contacto li { counter-increment: pc; display: grid; grid-template-columns: 34px 1fr; gap: 10px; font-size: .9rem; color: var(--texto-2); }
+.pasos-contacto li::before { content: "0" counter(pc); font-weight: 700; color: var(--cian-texto); }
+.pasos-contacto li strong { display: block; color: var(--grafito); }
+.aviso-urgente { margin: 0; padding: 12px 14px; border-radius: var(--radio-sm); background: #FFF1D6; color: #5C3900; font-size: .9rem; }
+.aviso-urgente a { color: #5C3900; font-weight: 600; }
+/* /solo:contacto */

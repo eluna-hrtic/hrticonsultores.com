@@ -48,9 +48,25 @@
     $("s-plan-nombre").textContent = r.plan + " · " + r.n + (r.n === 1 ? " trabajador" : " trabajadores");
     $("s-plan-total").textContent = "Desde " + soles(r.total);
     $("s-plan-desglose").textContent = "Al mes, con IGV. Es el precio de referencia: la propuesta final se ajusta a su operación (sedes, turnos e integraciones).";
-    var an = T.propuesta ? T.propuesta(elegidos(), n.value, "anual") : null, fp = $("s-plan-formas");
-    if (fp) fp.textContent = an && an.ok ? "Con pago anual adelantado: desde " + soles(an.cuota_con_igv) + " al mes" + (an.descuento ? " (" + Math.round(an.descuento * 100) + " % menos)" : "") +
-      " e implementación sin costo. También hay descuento con pago semestral adelantado o mensual con contrato anual." : "";
+    // Web v1.48 (tarifario v1.48, 28/10/2026): con contrato anual la implementación es sin costo en las tres formas de pago; solo se cobra
+    // en el pago mensual sin permanencia. Los descuentos se muestran tal como los calcula el tarifario (con el margen mínimo del primer año).
+    var fp = $("s-plan-formas");
+    if (fp && T.propuesta) {
+      var formas = [], sinDescuento = [];
+      [["anual", "anual adelantado"], ["semestral", "semestral adelantado"], ["perm6", "mensual con contrato anual"]].forEach(function (x) {
+        var p = T.propuesta(elegidos(), n.value, x[0]);
+        if (!p || !p.ok) return;
+        if (p.descuento) formas.push("pago " + x[1] + ", " + (Math.round(p.descuento * 1000) / 10).toString().replace(".", ",") + " % menos (desde " + soles(p.cuota_con_igv) + " al mes)");
+        else sinDescuento.push(x[1]);
+      });
+      var mens = T.propuesta(elegidos(), n.value, "mensual"), txt = "Con contrato anual, la implementación es sin costo";
+      if (formas.length) txt += ": " + formas.join("; ");
+      if (sinDescuento.length) txt += (formas.length ? ". Sin descuento en este plan: pago " : "; en este plan no hay descuento por forma de pago (pago ") +
+        sinDescuento.join(", ") + (formas.length ? "" : ")");
+      txt += ".";
+      if (mens && mens.ok && mens.implementacion) txt += " Mes a mes sin permanencia, la implementación cuesta " + soles(mens.implementacion_con_igv) + " con IGV, pago único.";
+      fp.textContent = txt;
+    }
     var regla = r.regla === "minimo" ? (r.micro ? "Incluye el monto mínimo de microempresa." : "Incluye el monto mínimo de su plan.")
       : r.regla === "piso" ? "La factura no baja al crecer: paga lo mismo que con " + r.piso_de + " trabajadores." : "Precio por trabajador según el tramo; el total incluye IGV.";
     $("s-plan-regla").textContent = regla + (r.avisos.length ? " " + r.avisos.join(" ") : "");
