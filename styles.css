@@ -1305,6 +1305,20 @@ main > :first-child h1 .script { animation: hrtic-escribe 1.2s .6s cubic-bezier(
 @media print { .cabecera, .pie, .muestras-indice, .wsp-flotante { display: none !important; } .hoja-muestra { box-shadow: none; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 /* /solo:muestras */
 
+/* solo:libro */
+/* Web v1.50 (decisión 78): al registrar la hoja de reclamación, la hoja con sus datos, para leerla e imprimirla (Reglamento del Libro de
+   Reclamaciones, art. 4-B). Al imprimir salen la cabecera de la hoja (proveedor, número y fecha) y la hoja; no la navegación ni los botones. */
+.hoja-resumen h2 { margin: 0 0 14px; }
+.hoja-resumen h2:focus { outline: none; }
+.hoja-resumen h3 { font-size: 1rem; margin: 22px 0 8px; }
+.hoja-resumen dl { display: grid; grid-template-columns: minmax(150px, 32%) 1fr; gap: 6px 16px; margin: 0; }
+.hoja-resumen dt { color: var(--texto-2); }
+.hoja-resumen dd { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
+.acciones-hoja { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+@media (max-width: 640px) { .hoja-resumen dl { grid-template-columns: 1fr; gap: 2px; } .hoja-resumen dd { margin-bottom: 8px; } }
+@media print { .cabecera, .pie, .wsp-flotante, .no-imprimir { display: none !important; } .hoja-resumen .aviso { padding: 0; background: none; } }
+/* /solo:libro */
+
 /* solo:contacto */
 /* Contacto que califica: urgencia, pasos que siguen y compromiso de respuesta. */
 .pasos-contacto { margin-top: 18px; }

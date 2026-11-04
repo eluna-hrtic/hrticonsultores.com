@@ -270,13 +270,19 @@
     a.textContent = texto;
   }
 
+  // Web v1.50 (decisión 77, auditoría M-1): correo más estricto, la misma regla que el servicio de formularios v1.16 (valido_). Sin espacios,
+  // comas ni punto y coma; sin punto al inicio, al final de la parte local ni dos seguidos; el dominio con al menos un punto y sin partes
+  // vacías. Así «ana@x..pe» o «ana@x.pe.» se corrigen aquí y no llegan al servicio, donde el correo no saldría.
+  var CORREO_VALIDO = /^(?!\.)(?!.*\.\.)(?!.*\.@)[^\s@,;:<>()[\]\\"]{1,64}@(?!-)(?!.*-\.)(?!.*\.-)(?!.*-$)(?:[^\s@,;:<>()[\]\\".]+\.)+[^\s@,;:<>()[\]\\".]{2,}$/;
+  var correoValido = function (s) { return s.length <= 254 && CORREO_VALIDO.test(s); };
+
   // Devuelve el primer campo que falta o está mal (y le pone el foco), o null si todo está bien.
   function validar(form) {
     var primero = null;
     form.querySelectorAll("[required]").forEach(function (c) {
       var ok = c.type === "checkbox" ? c.checked :
         c.type === "radio" ? !!form.querySelector('input[name="' + c.name + '"]:checked') :
-        c.value.trim() !== "" && (c.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value.trim())) &&
+        c.value.trim() !== "" && (c.type !== "email" || correoValido(c.value.trim())) &&
         (!(c.minLength > 0) || c.value.trim().length >= c.minLength);
       c.setAttribute("aria-invalid", ok ? "false" : "true");
       if (!ok && !primero) primero = c;
@@ -363,32 +369,104 @@
     return prepararContacto(d);
   });
 
-  // Consultas: precio total según el servicio (Ley N.º 29571, art. 4.1); el comprobante define el documento
+  // Documento de identidad · web v1.49 (decisiones 5, 9, 12 a 15 y 27 de Ernesto, 03/11/2026): los 8 tipos del T-Registro con las reglas
+  // de SUNAT (manual del PVS T-Registro v2.22, estructuras 04 y 05; Tabla 3 del Anexo 2 de la R.M. 286-2023-TR: PTP 23 y CPP 26).
+  // Misma tabla que PRAOLIR (public/documento_id.js, postulación /s/) y que el servicio de formularios. Sin nacionalidad ni país
+  // emisor (se piden al contratar, en PRAOLIR). Se envía en mayúsculas, sin espacios, puntos ni guiones.
+  // Web v1.50 (decisión 56, 04/11/2026): la misma tabla, con los mismos nombres y avisos, en la postulación, la consulta laboral (boleta)
+  // y el Libro de Reclamaciones (servicio de formularios v1.16).
+  var DOCS = {
+    dni: { re: /^\d{8}$/, min: 8, num: true, ayuda: "8 dígitos.", error: "El DNI tiene 8 dígitos, solo números." },
+    ce: { re: /^\d{9,11}$/, min: 9, num: true, ayuda: "De 9 a 11 dígitos, solo números.", error: "El carné de extranjería tiene de 9 a 11 dígitos, solo números." },
+    pasaporte: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el pasaporte.", error: "Copia el número del pasaporte tal como figura: de 6 a 15 letras o números." },
+    refugio: { re: /^\d{5,9}$/, min: 5, num: true, ayuda: "De 5 a 9 dígitos, solo números.", error: "El carné de solicitante de refugio tiene de 5 a 9 dígitos, solo números." },
+    rree: { re: /^\d{1,9}$/, min: 1, num: true, ayuda: "Hasta 9 dígitos, solo números.", error: "El carné de identidad de Relaciones Exteriores tiene hasta 9 dígitos, solo números." },
+    cpp: { re: /^\d{9}$/, min: 9, num: true, ayuda: "9 dígitos, como figura en el carné.", error: "El CPP tiene 9 dígitos, solo números." },
+    ptp: { re: /^\d{9}$/, min: 9, num: true, ayuda: "9 dígitos, como figura en el permiso.", error: "El PTP tiene 9 dígitos, solo números." },
+    extranjero: { re: /^[A-Z0-9]{1,15}$/, min: 1, num: false, ayuda: "Hasta 15 letras o números, como figura en el documento.", error: "El documento de identidad extranjero tiene hasta 15 letras o números." }
+  };
+  var normalizarDoc = function (v) { return String(v || "").toUpperCase().replace(/[\s.\-]/g, ""); };
+  // Web v1.50 (decisión 79): en el Libro, el aviso del documento sigue con la indicación del segundo clic; se reconoce por cómo empieza.
+  var esAvisoDoc = function (texto) { return Object.keys(DOCS).some(function (k) { return String(texto || "").indexOf(DOCS[k].error) === 0; }); };
+  // Une un selector de tipo de documento con su número: por tipo, mínimo, teclado, mayúsculas y ayuda; antes de enviar, la regla del tipo.
+  // Sin selector (una página de la v1.49 en caché con este main.js), no hace nada: el servicio v1.16 recibe el número como antes.
+  // «segundoClic» (web v1.50, decisión 79: un reclamo nunca se bloquea por el formato): si el número no cumple la regla de su tipo, el aviso
+  // lo dice y agrega este texto; si la persona vuelve a enviar sin cambiar el tipo ni el número, se envía igual. Sin mínimo de caracteres.
+  function campoDocumento(form, sel, inp, ayuda, segundoClic) {
+    if (!sel || !inp) return { tipo: function () { return DOCS.dni; }, ajustar: function () {}, marcarError: function () {},
+                               preparar: function () { return true; }, mensaje: function () { return null; } };
+    var tipo = function () { return (sel && Object.prototype.hasOwnProperty.call(DOCS, sel.value) && DOCS[sel.value]) || DOCS.dni; };
+    var confirmado = "";   // decisión 79: el tipo y el número que ya se avisaron una vez
+    var ajustar = function () {
+      var t = tipo();
+      if (segundoClic) inp.removeAttribute("minlength"); else inp.setAttribute("minlength", String(t.min));
+      inp.setAttribute("maxlength", "20");   // 20: con espacios o guiones al pegar
+      inp.setAttribute("inputmode", t.num ? "numeric" : "text"); inp.setAttribute("autocapitalize", t.num ? "off" : "characters");
+      inp.removeAttribute("pattern"); inp.removeAttribute("aria-invalid");
+      if (ayuda) ayuda.textContent = t.ayuda;
+      // Si el aviso era el de otro tipo de documento, ya no aplica: se quita (los demás avisos se quedan).
+      var a = form.querySelector(".aviso");
+      if (a && esAvisoDoc(a.textContent)) { a.className = "aviso oculto"; a.textContent = ""; }
+    };
+    sel.addEventListener("change", ajustar);
+    ajustar();
+    var marcarError = function () { inp.setAttribute("aria-invalid", "true"); inp.focus(); aviso(form, "error", tipo().error + (segundoClic ? " " + segundoClic : "")); };
+    return {
+      tipo: tipo, ajustar: ajustar, marcarError: marcarError,
+      // Pone el tipo y el número normalizado en los datos; si el número no cumple la regla de su tipo, muestra el aviso y devuelve false.
+      preparar: function (d) {
+        d.tipo_documento = sel.value; d.documento = normalizarDoc(d.documento);
+        if (tipo().re.test(d.documento)) return true;
+        if (segundoClic && confirmado === d.tipo_documento + "|" + d.documento) return true;   // decisión 79: segundo clic
+        if (segundoClic) confirmado = d.tipo_documento + "|" + d.documento;
+        marcarError(); return false;
+      },
+      // Web v1.49 (auditoría N-2): un número más corto que el mínimo de su tipo muestra el aviso de ese tipo, no el general.
+      mensaje: function (c) { return c === inp && inp.value.trim() ? tipo().error : null; }
+    };
+  }
+
+  // Consultas: precio total según el servicio (Ley N.º 29571, art. 4.1); el comprobante define el documento. Web v1.50 (decisión 56):
+  // la boleta, con los 8 documentos de identidad de la postulación; la factura, con RUC (la misma regla que el servicio de formularios).
   var fq = document.getElementById("form-consulta");
   if (fq) {
     var SERVICIOS = {
       escrita: { total: "S/ 59.00", detalle: "Consulta laboral por escrito · incluye IGV" },
       personalizada: { total: "S/ 177.00", detalle: "Consulta personalizada por videollamada (45 min) · incluye IGV" }
     };
-    var DOCS = {
-      persona: { doc: "DNI o carné de extranjería", ayuda: "(para la boleta)", max: 12 },
-      empresa: { doc: "RUC", ayuda: "(para la factura)", max: 11 }
-    };
-    var razon = fq.querySelector(".solo-empresa");
+    var RUC = { re: /^(10|15|17|20)\d{9}$/, ayuda: "11 dígitos.", error: "El RUC tiene 11 dígitos y empieza con 10, 15, 17 o 20." };
+    var razon = fq.querySelector(".solo-empresa"), persona = fq.querySelector(".solo-persona");
     var inRazon = document.getElementById("q-razon");
-    var inDoc = document.getElementById("q-documento");
+    var selDocQ = document.getElementById("q-tipo-doc"), inDocQ = document.getElementById("q-documento"), ayudaDocQ = document.getElementById("q-documento-ayuda");
     var etiqueta = document.getElementById("q-documento-etiqueta");
+    var docQ = campoDocumento(fq, selDocQ, inDocQ, ayudaDocQ);
     var elegido = function (nombre, defecto) { return (fq.querySelector('input[name="' + nombre + '"]:checked') || {}).value || defecto; };
+    var esEmpresa = function () { return elegido("tipo", "persona") === "empresa"; };
+    var ultimo = null;   // el comprobante anterior: el documento se ajusta solo si cambia (el precio, siempre)
     var modo = function () {
-      var s = SERVICIOS[elegido("servicio", "escrita")];
-      var t = elegido("tipo", "persona"), d = DOCS[t];
+      var s = SERVICIOS[elegido("servicio", "escrita")], emp = esEmpresa();
       document.getElementById("q-total").textContent = s.total;
       document.getElementById("q-detalle").textContent = s.detalle;
-      etiqueta.innerHTML = d.doc + ' <span class="ayuda">' + d.ayuda + "</span>";
-      inDoc.maxLength = d.max;
-      razon.hidden = t !== "empresa";
-      if (t === "empresa") inRazon.setAttribute("required", ""); else { inRazon.removeAttribute("required"); inRazon.removeAttribute("aria-invalid"); }
+      if (emp === ultimo) return;
+      ultimo = emp;
+      etiqueta.innerHTML = emp ? 'RUC <span class="ayuda">(para la factura)</span>' : selDocQ ? "Número de documento" : 'DNI o carné de extranjería <span class="ayuda">(para la boleta)</span>';
+      razon.hidden = !emp; if (persona) persona.hidden = emp;
+      if (emp) inRazon.setAttribute("required", ""); else { inRazon.removeAttribute("required"); inRazon.removeAttribute("aria-invalid"); }
+      if (!selDocQ) return;   // página de la v1.49 en caché: sin selector de tipo
+      if (emp) {
+        selDocQ.removeAttribute("required");
+        inDocQ.setAttribute("minlength", "11"); inDocQ.setAttribute("maxlength", "20"); inDocQ.setAttribute("inputmode", "numeric"); inDocQ.setAttribute("autocapitalize", "off");
+        inDocQ.removeAttribute("aria-invalid"); if (ayudaDocQ) ayudaDocQ.textContent = RUC.ayuda;
+        var a = fq.querySelector(".aviso");
+        if (a && esAvisoDoc(a.textContent)) { a.className = "aviso oculto"; a.textContent = ""; }
+      } else {
+        selDocQ.setAttribute("required", "");
+        var b = fq.querySelector(".aviso");
+        if (b && b.textContent === RUC.error) { b.className = "aviso oculto"; b.textContent = ""; }
+        docQ.ajustar();
+      }
     };
+    var errorRuc = function () { inDocQ.setAttribute("aria-invalid", "true"); inDocQ.focus(); aviso(fq, "error", RUC.error); return null; };
     fq.querySelectorAll('input[name="servicio"], input[name="tipo"]').forEach(function (r) { r.addEventListener("change", modo); });
     var marcar = function (nombre, valor) { var r = fq.querySelector('input[name="' + nombre + '"][value="' + valor + '"]'); if (r) r.checked = true; };
     if (params.get("servicio")) marcar("servicio", params.get("servicio"));
@@ -398,11 +476,25 @@
       if (local) { aviso(fq, "error", "El registro de consultas aún no está conectado. Escríbenos a eluna@hrticonsultores.com."); return; }
       if (res && res.ok) {
         evento("envio-consulta-" + elegido("servicio", "escrita"), "Consulta registrada");
-        fq.reset(); modo();
+        fq.reset(); ultimo = null; modo();
         aviso(fq, "ok", "Registramos tu consulta N.º " + res.numero + ". Te enviamos a tu correo el precio total (S/ " + res.total +
           ") y los datos de pago. Si no lo ves en unos minutos, revisa la carpeta de spam o correo no deseado y márcalo como «No es spam»: así te llegan también los siguientes correos de tu consulta.");
-      } else if (res && res.error === "documento") aviso(fq, "error", "Revisa el documento: DNI de 8 dígitos, carné de extranjería o RUC de 11 dígitos, y la razón social si pides factura.");
+      } else if (res && res.error === "documento") {
+        if (esEmpresa()) errorRuc();
+        else if (selDocQ) docQ.marcarError();
+        else aviso(fq, "error", "Revisa el documento: DNI de 8 dígitos, carné de extranjería o RUC de 11 dígitos, y la razón social si pides factura.");   // aviso de la v1.49
+      }
       else aviso(fq, "error", "No se pudo registrar. Escríbenos a eluna@hrticonsultores.com.");
+    }, function (d) {
+      if (!selDocQ) return d;   // página de la v1.49 en caché: valida el servicio, como antes
+      if (esEmpresa()) {
+        delete d.tipo_documento; d.documento = d.documento.replace(/[\s.\-]/g, "");
+        return RUC.re.test(d.documento) ? d : errorRuc();
+      }
+      return docQ.preparar(d) ? d : null;
+    }, function (c) {
+      if (!selDocQ || c !== inDocQ || !inDocQ.value.trim()) return null;
+      return esEmpresa() ? RUC.error : docQ.tipo().error;
     });
   }
 
@@ -439,40 +531,26 @@
       }
     };
     if (chkBanco) chkBanco.addEventListener("change", ajustarCompartir);
-    // Documento de identidad · web v1.49 (decisiones 5, 9, 12 a 15 y 27 de Ernesto, 03/11/2026): los 8 tipos del T-Registro con las reglas
-    // de SUNAT (manual del PVS T-Registro v2.22, estructuras 04 y 05; Tabla 3 del Anexo 2 de la R.M. 286-2023-TR: PTP 23 y CPP 26).
-    // Misma tabla que PRAOLIR (public/documento_id.js, postulación /s/) y que el servicio de formularios v1.15. Sin nacionalidad ni país
-    // emisor al postular (se piden al contratar, en PRAOLIR). Se envía en mayúsculas, sin espacios, puntos ni guiones.
-    var DOCS = {
-      dni: { re: /^\d{8}$/, min: 8, num: true, ayuda: "8 dígitos.", error: "El DNI tiene 8 dígitos, solo números." },
-      ce: { re: /^\d{9,11}$/, min: 9, num: true, ayuda: "De 9 a 11 dígitos, solo números.", error: "El carné de extranjería tiene de 9 a 11 dígitos, solo números." },
-      pasaporte: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el pasaporte.", error: "Copia el número del pasaporte tal como figura: de 6 a 15 letras o números." },
-      refugio: { re: /^\d{5,9}$/, min: 5, num: true, ayuda: "De 5 a 9 dígitos, solo números.", error: "El carné de solicitante de refugio tiene de 5 a 9 dígitos, solo números." },
-      rree: { re: /^\d{1,9}$/, min: 1, num: true, ayuda: "Hasta 9 dígitos, solo números.", error: "El carné de identidad de Relaciones Exteriores tiene hasta 9 dígitos, solo números." },
-      cpp: { re: /^\d{9}$/, min: 9, num: true, ayuda: "9 dígitos, como figura en el carné.", error: "El CPP tiene 9 dígitos, solo números." },
-      ptp: { re: /^\d{9}$/, min: 9, num: true, ayuda: "9 dígitos, como figura en el permiso.", error: "El PTP tiene 9 dígitos, solo números." },
-      extranjero: { re: /^[A-Z0-9]{1,15}$/, min: 1, num: false, ayuda: "Hasta 15 letras o números, como figura en el documento.", error: "El documento de identidad extranjero tiene hasta 15 letras o números." }
-    };
-    var docElegido = function () { return (selDoc && Object.prototype.hasOwnProperty.call(DOCS, selDoc.value) && DOCS[selDoc.value]) || DOCS.dni; };
-    var normalizarDoc = function (v) { return String(v || "").toUpperCase().replace(/[\s.\-]/g, ""); };
-    var ajustarDoc = function () {
-      if (!selDoc || !inDoc) return;
-      var t = docElegido();
-      inDoc.setAttribute("minlength", String(t.min)); inDoc.setAttribute("maxlength", "20");   // 20: con espacios o guiones al pegar
-      inDoc.setAttribute("inputmode", t.num ? "numeric" : "text"); inDoc.setAttribute("autocapitalize", t.num ? "off" : "characters");
-      inDoc.removeAttribute("pattern"); inDoc.removeAttribute("aria-invalid");
-      if (ayudaDoc) ayudaDoc.textContent = t.ayuda;
-      // Si el aviso era el de otro tipo de documento, ya no aplica: se quita (los demás avisos se quedan).
-      var a = fp.querySelector(".aviso");
-      if (a && Object.keys(DOCS).some(function (k) { return DOCS[k].error === a.textContent; })) { a.className = "aviso oculto"; a.textContent = ""; }
-    };
-    if (selDoc) selDoc.addEventListener("change", ajustarDoc);
-    ajustarDoc();
+    // Documento de identidad: la tabla DOCS y campoDocumento(), arriba (los mismos en la consulta laboral y el Libro de Reclamaciones).
+    var docP = campoDocumento(fp, selDoc, inDoc, ayudaDoc);
+    var ajustarDoc = docP.ajustar;
+    // Web v1.50 (verificación N-V6): un enlace a una convocatoria que no está en el formulario ya no cae sin aviso en «Banco de talento».
+    // Si se postula en PRAOLIR, aparece su aviso con el enlace; si no está abierta, el aviso general. Se ocultan al elegir otra opción.
+    var notasConv = Array.prototype.slice.call(document.querySelectorAll("[data-conv-plataforma], #p-conv-cerrada"));
+    var ocultarNotas = function () { notasConv.forEach(function (n) { n.hidden = true; }); };
     var elegirConv = function (id) {
-      for (var i = 0; i < selConv.options.length; i++) if (selConv.options[i].value === id) { selConv.selectedIndex = i; break; }
+      var hallada = false;
+      for (var i = 0; i < selConv.options.length; i++) if (selConv.options[i].value === id) { selConv.selectedIndex = i; hallada = true; break; }
+      ocultarNotas();
+      if (!hallada) {
+        var enPlataforma = notasConv.filter(function (n) { return n.getAttribute("data-conv-plataforma") === id; })[0];
+        var cerrada = document.getElementById("p-conv-cerrada");
+        if (enPlataforma) enPlataforma.hidden = false;
+        else if (cerrada && /^\d{4}-\d{3}$/.test(id)) { cerrada.querySelector("[data-conv-id]").textContent = id; cerrada.hidden = false; }
+      }
       ajustarCompartir();
     };
-    selConv.addEventListener("change", ajustarCompartir);
+    selConv.addEventListener("change", function () { ocultarNotas(); ajustarCompartir(); });
     document.querySelectorAll("a[data-convocatoria]").forEach(function (a) {
       a.addEventListener("click", function () { elegirConv(a.getAttribute("data-convocatoria")); evento("elige-convocatoria", "Elige convocatoria"); });
     });
@@ -508,16 +586,12 @@
         aviso(fp, "ok", "Recibimos tu postulación N.º " + res.numero + ". Te enviamos la confirmación a tu correo; si no la ves en unos minutos, revisa la carpeta de spam o correo no deseado.");
       } else if (res && res.error === "cv") errorCv("Revisa tu CV: debe ser un archivo PDF de hasta 5 MB.");
       else if (res && res.error === "compartir") { chkCompartir.focus(); aviso(fp, "error", "Para postular a esta convocatoria necesitamos tu autorización para compartir tu CV con la empresa."); }
-      else if (res && (res.error === "documento" || res.error === "dni")) { if (inDoc) { inDoc.setAttribute("aria-invalid", "true"); inDoc.focus(); } aviso(fp, "error", docElegido().error); }
+      else if (res && (res.error === "documento" || res.error === "dni")) docP.marcarError();
       else if (res && res.error === "limite") aviso(fp, "error", "Recibimos varias postulaciones desde este correo en la última hora. Inténtalo más tarde o escríbenos a eluna@hrticonsultores.com.");
       else aviso(fp, "error", "No se pudo enviar. Envía tu CV a eluna@hrticonsultores.com.");
     }, function (d) {
       // Tipo y número de documento, validado según el tipo (v1.48, decisión 14; v1.49, los 8 tipos de SUNAT).
-      if (selDoc && inDoc) {
-        var t = docElegido();
-        d.tipo_documento = selDoc.value; d.documento = normalizarDoc(d.documento);
-        if (!t.re.test(d.documento)) { inDoc.setAttribute("aria-invalid", "true"); inDoc.focus(); aviso(fp, "error", t.error); return null; }
-      }
+      if (selDoc && inDoc && !docP.preparar(d)) return null;
       var f = inCv.files && inCv.files[0];
       if (!f) return errorCv("Adjunta tu CV en PDF.");
       if (!/\.pdf$/i.test(f.name) && f.type !== "application/pdf") return errorCv("Tu CV debe estar en PDF. Guárdalo como PDF desde Word o Google Docs y vuelve a adjuntarlo.");
@@ -532,10 +606,7 @@
         d.cvBase64 = aBase64(bytes);
         return d;
       });
-    }, function (c) {
-      // Web v1.49 (auditoría N-2): un número más corto que el mínimo de su tipo muestra el aviso de ese tipo, no el general.
-      return c === inDoc && inDoc.value.trim() ? docElegido().error : null;
-    });
+    }, docP.mensaje);   // web v1.49 (auditoría N-2): aviso del tipo si el número es más corto que su mínimo
   }
 
   // Criterio HRTIC: filtro por tema, «Ver más» y copiar enlace. Sin JavaScript se ven todas las entregas.
@@ -838,14 +909,118 @@
     fc.addEventListener("change", revisarUrgencia); if (fecha) fecha.addEventListener("input", revisarUrgencia); revisarUrgencia();
   })();
 
-  // Libro de Reclamaciones
+  // Libro de Reclamaciones. Web v1.50 (decisión 56): el documento de identidad con los 8 tipos de la postulación. La hoja sigue pidiendo
+  // los datos del consumidor del Reglamento (D.S. N.º 011-2011-PCM, art. 5, modificado por el D.S. N.º 006-2014-PCM): nombre, domicilio,
+  // número de documento de identidad, teléfono y correo.
+  // Decisión 67 (04/11/2026): si el reclamante es menor de edad, el nombre, el domicilio, el teléfono y el correo de uno de sus padres o de
+  // su representante (art. 5): visibles y obligatorios solo al marcar «menor de edad».
+  // Web v1.50, ronda de la auditoría:
+  // - Decisión 79: si el número no cumple la regla de su tipo, el aviso lo dice y un segundo clic envía la hoja igual (el servicio la acepta).
+  // - Decisión 77: un identificador de envío por hoja; si la misma hoja llega dos veces (por ejemplo, al reintentar), el servicio v1.16
+  //   devuelve la ya registrada. Si una copia por correo no sale, la hoja igual quedó registrada y aquí se dice cuál no salió.
+  // - Decisión 78 (Reglamento, art. 4-B): al registrar, se muestra la hoja con sus datos para imprimirla; el formulario se vacía recién al
+  //   pulsar «Registrar otra hoja».
   var fl = document.getElementById("form-libro");
-  if (fl) enviar(fl, function (res, local) {
-    if (local) { aviso(fl, "error", "El Libro de Reclamaciones virtual aún no está conectado. Escríbenos a eluna@hrticonsultores.com."); return; }
-    if (res && res.ok) {
-      document.getElementById("lr-numero").textContent = res.numero;
-      fl.reset();
-      aviso(fl, "ok", "Hoja N.º " + res.numero + " registrada el " + fechaTxt + ". Te enviamos una copia a tu correo. Puedes imprimir esta página como constancia.");
-    } else aviso(fl, "error", "No se pudo registrar. Escríbenos a eluna@hrticonsultores.com.");
-  });
+  if (fl) {
+    var docL = campoDocumento(fl, document.getElementById("l-tipo-doc"), document.getElementById("l-doc"), document.getElementById("l-doc-ayuda"),
+                              "Si el número está bien escrito, pulsa otra vez «Registrar hoja de reclamación» y la hoja se envía igual.");
+    var menor = document.getElementById("l-menor"), datosMenor = document.getElementById("l-menor-datos");
+    var camposMenor = datosMenor ? Array.prototype.slice.call(datosMenor.querySelectorAll("input")) : [];
+    var ajustarMenor = function () {
+      if (!menor || !datosMenor) return;
+      datosMenor.hidden = !menor.checked;
+      camposMenor.forEach(function (c) { if (menor.checked) c.setAttribute("required", ""); else { c.removeAttribute("required"); c.removeAttribute("aria-invalid"); } });
+    };
+    if (menor) menor.addEventListener("change", ajustarMenor);
+    ajustarMenor();
+    var nuevoEnvio = function () {
+      var b = [], cr = window.crypto;
+      if (cr && cr.getRandomValues) b = Array.prototype.slice.call(cr.getRandomValues(new Uint8Array(12)));
+      else for (var i = 0; i < 12; i++) b.push(Math.floor(Math.random() * 256));
+      return b.map(function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+    };
+    var envioL = nuevoEnvio();
+    var resumen = document.getElementById("lr-resumen"), lrNumero = document.getElementById("lr-numero");
+    var valorL = function (nombre) { var c = fl.querySelector('[name="' + nombre + '"]'); return c ? String(c.value || "").trim() : ""; };
+    var estadoCopias = function (res, deMenor) {
+      var c = res.copia !== false, r = deMenor ? res.copia_representante !== false : null;
+      if (c && r !== false) return "Te enviamos una copia a tu correo" + (deMenor ? " y al de tu padre, madre o representante." : ".");
+      var t = c ? "Te enviamos una copia a tu correo. No pudimos enviarla al correo de tu padre, madre o representante."
+        : r ? "Enviamos una copia al correo de tu padre, madre o representante. No pudimos enviarla a tu correo."
+        : "No pudimos enviarte la copia por correo.";
+      return t + " Revisa que el correo esté bien escrito. Si necesitas la copia, escríbenos a eluna@hrticonsultores.com.";
+    };
+    // La hoja tal como se envió, solo texto (textContent), con los mismos apartados del formulario.
+    var mostrarHoja = function (res, deMenor) {
+      var cont = document.getElementById("lr-resumen-datos"), estado = document.getElementById("lr-resumen-estado");
+      if (!resumen || !cont || !estado) return false;
+      var sel = document.getElementById("l-tipo-doc"), tipoR = fl.querySelector('input[name="tipo"]:checked');
+      var tipoDoc = sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].text + " " : "";
+      var grupos = [
+        ["1. Identificación del consumidor reclamante", [["Nombres y apellidos", valorL("nombre")], ["Documento de identidad", tipoDoc + normalizarDoc(valorL("documento"))],
+          ["Domicilio", valorL("domicilio")], ["Teléfono", valorL("telefono")], ["Correo", valorL("correo")]].concat(menor ? [["Menor de edad", deMenor ? "Sí" : "No"]] : [],
+          deMenor ? [["Padre, madre o representante", valorL("apoderado")], ["Domicilio del representante", valorL("apoderado_domicilio")],
+                     ["Teléfono del representante", valorL("apoderado_telefono")], ["Correo del representante", valorL("apoderado_correo")]] : [])],
+        ["2. Identificación del servicio contratado", [["Servicio", valorL("servicio")], ["Monto reclamado (S/)", valorL("monto") || "No indicado"]]],
+        ["3. Detalle de la reclamación y pedido", [["Tipo", tipoR && tipoR.value === "queja" ? "Queja" : "Reclamo"], ["Detalle", valorL("detalle")], ["Pedido", valorL("pedido")]]]
+      ];
+      cont.textContent = "";
+      grupos.forEach(function (g) {
+        var h = document.createElement("h3"), dl = document.createElement("dl");
+        h.textContent = g[0];
+        g[1].forEach(function (p) {
+          var dt = document.createElement("dt"), dd = document.createElement("dd");
+          dt.textContent = p[0]; dd.textContent = p[1]; dl.appendChild(dt); dl.appendChild(dd);
+        });
+        cont.appendChild(h); cont.appendChild(dl);
+      });
+      var plazo = document.getElementById("lr-resumen-plazo");
+      if (plazo && res.vence) plazo.textContent = "HRTIC responderá a tu reclamo o queja en un plazo máximo de quince (15) días hábiles improrrogables, a más tardar el " +
+        res.vence + ", al correo que registraste.";
+      estado.textContent = "Hoja N.º " + res.numero + " registrada el " + (res.fecha || fechaTxt) + ". " + estadoCopias(res, deMenor) +
+        " Imprímela o guárdala como constancia con el botón «Imprimir hoja».";
+      fl.hidden = true; resumen.hidden = false;
+      var titulo = document.getElementById("lr-resumen-titulo");
+      if (titulo) titulo.focus();
+      return true;
+    };
+    var otraHoja = function () {
+      fl.reset(); docL.ajustar(); ajustarMenor(); envioL = nuevoEnvio();
+      var a = fl.querySelector(".aviso");
+      if (a) { a.className = "aviso oculto"; a.textContent = ""; }
+      if (lrNumero) lrNumero.textContent = "se asigna al enviar";
+      if (lrFecha) lrFecha.textContent = new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+    };
+    var botonImprimir = document.getElementById("lr-imprimir"), botonOtra = document.getElementById("lr-otra");
+    if (botonImprimir) botonImprimir.addEventListener("click", function () { window.print(); });
+    if (botonOtra) botonOtra.addEventListener("click", function () {
+      otraHoja();
+      if (resumen) resumen.hidden = true;
+      fl.hidden = false;
+      var n = document.getElementById("l-nombre");
+      if (n) n.focus();
+    });
+    enviar(fl, function (res, local) {
+      if (local) { aviso(fl, "error", "El Libro de Reclamaciones virtual aún no está conectado. Escríbenos a eluna@hrticonsultores.com."); return; }
+      if (res && res.ok) {
+        var deMenor = !!(menor && menor.checked);   // decisión 76: la copia va también al padre, la madre o el representante
+        if (lrNumero) lrNumero.textContent = res.numero;
+        if (lrFecha && res.fecha) lrFecha.textContent = res.fecha;
+        if (mostrarHoja(res, deMenor)) return;
+        // Sin la hoja para imprimir (página anterior en caché con este main.js): como antes, con el aviso en el formulario.
+        otraHoja();
+        if (lrNumero) lrNumero.textContent = res.numero;
+        aviso(fl, "ok", "Hoja N.º " + res.numero + " registrada el " + (res.fecha || fechaTxt) + ". " + estadoCopias(res, deMenor));
+      } else if (res && res.error === "documento") docL.marcarError();
+      else aviso(fl, "error", "No se pudo registrar. Escríbenos a eluna@hrticonsultores.com.");
+    }, function (d) {
+      if (!docL.preparar(d)) return null;
+      if (menor) {
+        d.menor = menor.checked ? "si" : "no";
+        if (!menor.checked) ["apoderado", "apoderado_domicilio", "apoderado_telefono", "apoderado_correo"].forEach(function (k) { delete d[k]; });
+      }
+      d.envio = envioL;
+      return d;
+    }, docL.mensaje);
+  }
 })();

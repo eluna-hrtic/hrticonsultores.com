@@ -170,13 +170,26 @@
         <fieldset class="campo">
           <legend>Comprobante</legend>
           <div class="opciones">
-            <label class="opcion"><input type="radio" name="tipo" value="persona" checked> Boleta (DNI o carné)</label>
+            <label class="opcion"><input type="radio" name="tipo" value="persona" checked> Boleta (documento de identidad)</label>
             <label class="opcion"><input type="radio" name="tipo" value="empresa"> Factura (RUC)</label>
           </div>
         </fieldset>
+        <div class="campo"><label for="q-nombre">Nombre y apellido</label><input id="q-nombre" name="nombre" autocomplete="name" required maxlength="120"></div>
         <div class="fila">
-          <div class="campo"><label for="q-nombre">Nombre y apellido</label><input id="q-nombre" name="nombre" autocomplete="name" required maxlength="120"></div>
-          <div class="campo"><label for="q-documento" id="q-documento-etiqueta">DNI o carné de extranjería <span class="ayuda">(para la boleta)</span></label><input id="q-documento" name="documento" inputmode="numeric" required maxlength="12"></div>
+          <div class="campo solo-persona">
+            <label for="q-tipo-doc">Documento de identidad <span class="ayuda">(para la boleta)</span></label>
+            <select id="q-tipo-doc" name="tipo_documento" required>
+              <option value="dni">DNI</option>
+              <option value="ce">Carné de extranjería</option>
+              <option value="pasaporte">Pasaporte</option>
+              <option value="refugio">Carné de solicitante de refugio</option>
+              <option value="rree">Carné de identidad RR. EE.</option>
+              <option value="cpp">CPP (Carné de Permiso Temporal)</option>
+              <option value="ptp">PTP (Permiso Temporal)</option>
+              <option value="extranjero">Documento de identidad extranjero</option>
+            </select>
+          </div>
+          <div class="campo"><label for="q-documento" id="q-documento-etiqueta">Número de documento</label><input id="q-documento" name="documento" inputmode="numeric" autocapitalize="off" autocomplete="off" required minlength="8" maxlength="20" aria-describedby="q-documento-ayuda"><span class="ayuda" id="q-documento-ayuda">8 dígitos.</span></div>
         </div>
         <div class="campo solo-empresa" hidden><label for="q-razon">Razón social <span class="ayuda">(para la factura)</span></label><input id="q-razon" name="razon_social" autocomplete="organization" maxlength="160"></div>
         <div class="fila">
@@ -222,7 +235,7 @@
       <li>Si la consulta personalizada viene del <a href="https://app.hrticonsultores.com/diagnostico" target="_blank" rel="noopener">diagnóstico laboral gratuito</a> y dentro de los 30 días siguientes contratas el plan de acción o el acompañamiento, los S/ 177.00 se descuentan de ese servicio.</li>
       <li>Los precios son los mismos para empresas y para profesionales. Son servicios independientes: lo pagado por uno no se descuenta del otro.</li>
       <li>Pago solo por transferencia a la cuenta de HR Talento Integral Consultores E.I.R.L. Los datos de la cuenta llegan en el correo de confirmación. No pedimos pagos a cuentas de personas naturales.</li>
-      <li>Emitimos boleta de venta electrónica a nombre del DNI o carné indicado, o factura electrónica a nombre del RUC indicado.</li>
+      <li>Emitimos boleta de venta electrónica con el nombre y el documento de identidad que indiques, o factura electrónica con el RUC y la razón social que indiques.</li>
     </ul>
 
     <h3>Plazo de la consulta por escrito</h3>
@@ -246,7 +259,7 @@
     <h3>Reclamos</h3>
     <p>Si no estás conforme con el servicio, puedes registrar tu reclamo o queja en nuestro <a href="libro-de-reclamaciones.html">Libro de Reclamaciones virtual</a>. Respondemos en el plazo de ley.</p>
 
-    <p>Condiciones vigentes desde el 24 de setiembre de 2026.</p>
+    <p>Condiciones vigentes desde el 4 de noviembre de 2026.</p>
   </div>
 </section>
 </main>
@@ -325,7 +338,7 @@
   </div>
 </footer>
 <a class="wsp-flotante" href="https://wa.me/51942927868?text=Hola%2C%20vengo%20de%20la%20web%20de%20HRTIC%20%28Consultas%29%20y%20quiero%20hacer%20una%20consulta." target="_blank" rel="noopener" aria-label="Abrir WhatsApp de HRTIC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19.1L4 20Z"/><path d="M9.2 8.6c.2-.4.5-.5.8-.5h.5c.2 0 .4.1.5.4l.7 1.6c.1.2 0 .5-.1.7l-.5.6c.6 1.1 1.4 1.9 2.5 2.5l.6-.5c.2-.2.5-.2.7-.1l1.6.7c.3.1.4.3.4.5v.5c0 .3-.1.6-.5.8-.6.3-1.6.5-2.9-.1a9.2 9.2 0 0 1-4.3-4.3c-.6-1.3-.4-2.3-.1-2.9Z" fill="currentColor" stroke="none"/></svg></a>
-<script src="main.js" defer></script>
+<script src="main.js?v=fb6922c995" defer></script>
 <script data-goatcounter="https://hrtic.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
