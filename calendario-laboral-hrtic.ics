@@ -6,26 +6,6 @@ METHOD:PUBLISH
 X-WR-CALNAME:Calendario laboral HRTIC
 X-WR-TIMEZONE:America/Lima
 BEGIN:VEVENT
-UID:cts-banco-2026-10@hrticonsultores.com
-DTSTAMP:20260924T170000Z
-DTSTART;VALUE=DATE:20261030
-DTEND;VALUE=DATE:20261031
-SUMMARY:Elección del banco de CTS de quien ingresó en el semestre
-DESCRIPTION:El plazo vence el sábado 31/10/2026. El trabajador que ingres
- ó comunica por escrito y bajo cargo el banco\, el tipo de cuenta y la mon
- eda de su CTS. Si no lo hace\, el empleador deposita a plazo fijo en cualq
- uier entidad permitida.\nBase legal: D.S. N.º 001-97-TR\, TUO de la Ley d
- e CTS (El Peruano\, 01/03/1997)\, art. 23\nhttps://hrticonsultores.com/cal
- endario-laboral.html
-URL:https://hrticonsultores.com/calendario-laboral.html
-TRANSP:TRANSPARENT
-BEGIN:VALARM
-ACTION:DISPLAY
-TRIGGER:-P3D
-DESCRIPTION:Elección del banco de CTS de quien ingresó en el semestre
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:cts-2026-11@hrticonsultores.com
 DTSTAMP:20260924T170000Z
 DTSTART;VALUE=DATE:20261116

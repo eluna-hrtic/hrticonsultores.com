@@ -53,7 +53,7 @@
     { k: "anual", n: "Anual adelantado (12 meses) con contrato anual", descuento: 0.10, meses: 12, permanencia: 12, implementacion: false }
   ];
   var CUOTA_MIN = { anual: 178.17, anual_impl: 137.34, mes: 186.78, mes_impl: 138.77 };
-  var PROMO_LANZAMIENTO = { vence: "2026-11-30", cupos: 20, permanencia: 12, sin_plataforma: 0.10, migracion: 0.15, piso: 0.85 };
+  var PROMO_LANZAMIENTO = { vence: "2026-11-30", permanencia: 12, sin_plataforma: 0.10, migracion: 0.15, piso: 0.85 };
   var INCLUIDO = [
     "Implementación en hasta 15 días hábiles desde que entregas la información completa: configuración, carga del personal e inducción de los usuarios",
     "Agente de cumplimiento: 30 consultas al mes (paquete adicional de 50 consultas por S/ 15 + IGV)",
@@ -147,7 +147,7 @@
       if (factura.length < 4) return { error: "Indica la serie y el número de la última factura del proveedor actual (sustento del 15 %)." };
     }
     var objetivo = promo.tipo === "sin_plataforma" ? r2(lista * (1 - P.sin_plataforma)) : Math.min(lista, r2(pago * (1 - P.migracion)));
-    var piso = r2(lista * P.piso), cuota = Math.max(objetivo, piso), gratis = promo.cupo !== false;
+    var piso = r2(lista * P.piso), cuota = Math.max(objetivo, piso), gratis = true;
     return { tipo: promo.tipo, pago_actual: pago, factura: factura, objetivo: objetivo, piso: piso, cuota: cuota, descuento: lista > 0 ? Math.round((1 - cuota / lista) * 10000) / 10000 : 0,
       implementacion_sin_costo: gratis || !m.implementacion,
       modalidad: { k: m.k, n: m.n, descuento: m.descuento, meses: m.meses,

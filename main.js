@@ -270,6 +270,7 @@
     a.textContent = texto;
   }
 
+  // Devuelve el primer campo que falta o está mal (y le pone el foco), o null si todo está bien.
   function validar(form) {
     var primero = null;
     form.querySelectorAll("[required]").forEach(function (c) {
@@ -280,15 +281,17 @@
       c.setAttribute("aria-invalid", ok ? "false" : "true");
       if (!ok && !primero) primero = c;
     });
-    if (primero) { primero.focus(); return false; }
-    return true;
+    if (primero) primero.focus();
+    return primero;
   }
 
   // «preparar» (opcional) completa los datos antes de enviarlos, por ejemplo con el CV; si falla, muestra su propio aviso.
-  function enviar(form, alTerminar, preparar) {
+  // «mensajeDe» (opcional, web v1.49, auditoría N-2): el aviso propio de un campo; si no tiene uno, va el aviso general.
+  function enviar(form, alTerminar, preparar, mensajeDe) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      if (!validar(form)) { aviso(form, "error", "Revisa los campos obligatorios."); return; }
+      var malo = validar(form);
+      if (malo) { aviso(form, "error", (mensajeDe && mensajeDe(malo)) || "Revisa los campos obligatorios."); return; }
       var endpoint = form.getAttribute("data-endpoint");
       var btn = form.querySelector('button[type="submit"]');
       if (!endpoint) { alTerminar(null, datos(form)); return; }
@@ -436,23 +439,32 @@
       }
     };
     if (chkBanco) chkBanco.addEventListener("change", ajustarCompartir);
-    // Documento de identidad (decisión 14): las mismas reglas que el servicio de formularios v1.14. Se envía en mayúsculas, sin
-    // espacios, puntos ni guiones. El formato del CPP y del PTP no se pudo confirmar en una fuente oficial: regla prudente.
+    // Documento de identidad · web v1.49 (decisiones 5, 9, 12 a 15 y 27 de Ernesto, 03/11/2026): los 8 tipos del T-Registro con las reglas
+    // de SUNAT (manual del PVS T-Registro v2.22, estructuras 04 y 05; Tabla 3 del Anexo 2 de la R.M. 286-2023-TR: PTP 23 y CPP 26).
+    // Misma tabla que PRAOLIR (public/documento_id.js, postulación /s/) y que el servicio de formularios v1.15. Sin nacionalidad ni país
+    // emisor al postular (se piden al contratar, en PRAOLIR). Se envía en mayúsculas, sin espacios, puntos ni guiones.
     var DOCS = {
       dni: { re: /^\d{8}$/, min: 8, num: true, ayuda: "8 dígitos.", error: "El DNI tiene 8 dígitos, solo números." },
-      ce: { re: /^[A-Z0-9]{9,12}$/, min: 9, num: false, ayuda: "De 9 a 12 letras o números, sin espacios ni guiones.", error: "Revisa el carné de extranjería: tiene de 9 a 12 letras o números." },
+      ce: { re: /^\d{9,11}$/, min: 9, num: true, ayuda: "De 9 a 11 dígitos, solo números.", error: "El carné de extranjería tiene de 9 a 11 dígitos, solo números." },
       pasaporte: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el pasaporte.", error: "Copia el número del pasaporte tal como figura: de 6 a 15 letras o números." },
-      cpp: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el carné.", error: "Escribe el número del CPP tal como figura en el carné: de 6 a 15 letras o números." },
-      ptp: { re: /^[A-Z0-9]{6,15}$/, min: 6, num: false, ayuda: "De 6 a 15 letras o números, como figura en el permiso.", error: "Usa el número del PTP tal como figura en el permiso: de 6 a 15 letras o números." }
+      refugio: { re: /^\d{5,9}$/, min: 5, num: true, ayuda: "De 5 a 9 dígitos, solo números.", error: "El carné de solicitante de refugio tiene de 5 a 9 dígitos, solo números." },
+      rree: { re: /^\d{1,9}$/, min: 1, num: true, ayuda: "Hasta 9 dígitos, solo números.", error: "El carné de identidad de Relaciones Exteriores tiene hasta 9 dígitos, solo números." },
+      cpp: { re: /^\d{9}$/, min: 9, num: true, ayuda: "9 dígitos, como figura en el carné.", error: "El CPP tiene 9 dígitos, solo números." },
+      ptp: { re: /^\d{9}$/, min: 9, num: true, ayuda: "9 dígitos, como figura en el permiso.", error: "El PTP tiene 9 dígitos, solo números." },
+      extranjero: { re: /^[A-Z0-9]{1,15}$/, min: 1, num: false, ayuda: "Hasta 15 letras o números, como figura en el documento.", error: "El documento de identidad extranjero tiene hasta 15 letras o números." }
     };
-    var docElegido = function () { return DOCS[selDoc && selDoc.value] || DOCS.dni; };
+    var docElegido = function () { return (selDoc && Object.prototype.hasOwnProperty.call(DOCS, selDoc.value) && DOCS[selDoc.value]) || DOCS.dni; };
     var normalizarDoc = function (v) { return String(v || "").toUpperCase().replace(/[\s.\-]/g, ""); };
     var ajustarDoc = function () {
       if (!selDoc || !inDoc) return;
       var t = docElegido();
-      inDoc.setAttribute("minlength", String(t.min)); inDoc.setAttribute("maxlength", "20");
-      inDoc.setAttribute("inputmode", t.num ? "numeric" : "text"); inDoc.removeAttribute("pattern"); inDoc.removeAttribute("aria-invalid");
+      inDoc.setAttribute("minlength", String(t.min)); inDoc.setAttribute("maxlength", "20");   // 20: con espacios o guiones al pegar
+      inDoc.setAttribute("inputmode", t.num ? "numeric" : "text"); inDoc.setAttribute("autocapitalize", t.num ? "off" : "characters");
+      inDoc.removeAttribute("pattern"); inDoc.removeAttribute("aria-invalid");
       if (ayudaDoc) ayudaDoc.textContent = t.ayuda;
+      // Si el aviso era el de otro tipo de documento, ya no aplica: se quita (los demás avisos se quedan).
+      var a = fp.querySelector(".aviso");
+      if (a && Object.keys(DOCS).some(function (k) { return DOCS[k].error === a.textContent; })) { a.className = "aviso oculto"; a.textContent = ""; }
     };
     if (selDoc) selDoc.addEventListener("change", ajustarDoc);
     ajustarDoc();
@@ -500,7 +512,7 @@
       else if (res && res.error === "limite") aviso(fp, "error", "Recibimos varias postulaciones desde este correo en la última hora. Inténtalo más tarde o escríbenos a eluna@hrticonsultores.com.");
       else aviso(fp, "error", "No se pudo enviar. Envía tu CV a eluna@hrticonsultores.com.");
     }, function (d) {
-      // Ronda de corrección (decisión 14): tipo y número de documento, validado según el tipo.
+      // Tipo y número de documento, validado según el tipo (v1.48, decisión 14; v1.49, los 8 tipos de SUNAT).
       if (selDoc && inDoc) {
         var t = docElegido();
         d.tipo_documento = selDoc.value; d.documento = normalizarDoc(d.documento);
@@ -520,6 +532,9 @@
         d.cvBase64 = aBase64(bytes);
         return d;
       });
+    }, function (c) {
+      // Web v1.49 (auditoría N-2): un número más corto que el mínimo de su tipo muestra el aviso de ese tipo, no el general.
+      return c === inDoc && inDoc.value.trim() ? docElegido().error : null;
     });
   }
 
