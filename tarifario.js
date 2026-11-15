@@ -1,4 +1,4 @@
-/* HRTIC · tarifario público de hrticonsultores.com. GENERADO, no editar a mano: fuente/generar_tarifario_publico.cjs desde public/tarifario.js de PRAOLIR · VERSION 2026-10-28.1 · sha256 b11df922410fee3a60994857e6a5ddcb3caf3ed1c390007647035ce5562bfa0b */
+/* HRTIC · tarifario público de hrticonsultores.com. GENERADO, no editar a mano: fuente/generar_tarifario_publico.cjs desde public/tarifario.js de PRAOLIR · VERSION 2026-11-15.1 · sha256 2927980a3594776e04f1889b8bcc83f5bafc74ce31baba4e2719b1e5ff952e1a */
 (function (g) {
   "use strict";
   var TRAMOS = [
@@ -10,7 +10,7 @@
       d: "Marcación por celular, equipo fijo, QR y rostro; horas extra, turnos, permisos, tableros y reportes",
       p: [9.70, 5.50, 4.70, 4.20, 3.90, 3.60] },
     { k: "personas", n: "Administración de personas", grupo: "Personas", minimo: 0,
-      d: "Legajo digital, contratos y adendas con firma electrónica, disciplina, solicitudes, políticas con acuse y documentos ISO",
+      d: "Legajo digital, contratos y adendas con firma electrónica, disciplina, solicitudes, políticas con acuse, documentos ISO y capacitaciones (incluidas sin costo)",
       p: [6.30, 4.90, 5.70, 5.80, 5.40, 5.20] },
     { k: "planilla", n: "Planilla y boletas", grupo: "Planilla", minimo: 0,
       d: "Planilla, gratificación, CTS, liquidación, quinta, boletas firmadas y archivos de la PLAME",
@@ -43,7 +43,24 @@
     { k: "Corporativo", m: ["asistencia", "personas", "planilla", "seleccion", "induccion", "desempeno", "cumplimiento", "clima", "corporativo"], p: [null, null, 24.20, 21.70, 20.20, 18.90], minimo: 1470 }
   ];
   var MICRO = { minimo: 149, hasta: 10 };
+  var MINIMO_BASE = 290;
+  var SERVICIOS = [
+    { k: "psicosocial", n: "Evaluación de factores de riesgo psicosocial (instrumento HRTIC)", por: "aplicación",
+      d: "Evaluación de factores de riesgo psicosocial con el Cuestionario HRTIC: aplicación anónima, informe por área con los indicadores de la plataforma, plan de acción y revisión de HRTIC",
+      desglose: ["Cuestionario HRTIC de factores psicosociales (26 afirmaciones, 13 dimensiones)", "Aplicación anónima en la app del trabajador",
+        "Informe por área con los indicadores de la plataforma", "Plan de acción con medidas sugeridas", "Revisión de HRTIC antes de entregar el informe"],
+      precios: [[50, 690], [200, 1190], [Infinity, 1990]] },
+    { k: "psi_colegiado", n: "Informe psicosocial firmado por psicólogo colegiado", por: "aplicación", requiere: "psicosocial",
+      d: "El informe de la evaluación de factores de riesgo psicosocial firmado por un psicólogo colegiado (con su número de colegiatura)",
+      desglose: ["Revisión del informe por un psicólogo colegiado", "Firma del informe con su nombre y número de colegiatura"],
+      precios: [[Infinity, 500]] }];
   var IGV = 0.18;
+  SERVICIOS.push({ k: "capacitacion", n: "Cursos HRTIC asincrónicos a pedido", por: "curso",
+    d: "Curso HRTIC en la app del trabajador, con evaluación de entrada y de salida, certificado con la nota final e informe del curso",
+    desglose: ["Contenido del curso HRTIC (video o PDF)", "Evaluación de entrada y de salida con nota final", "Certificado con la nota final (firma electrónica)", "Informe del curso y registro en PDF y Excel"],
+    sin_costo: "Herramienta de capacitaciones de PRAOLIR: incluida sin costo (lo que se cobra es el contenido HRTIC)",
+    tramos: [{ hasta: 20, fijo: 390 }, { hasta: 50, por_trabajador: 18 }, { hasta: 200, por_trabajador: 14 }, { hasta: Infinity, por_trabajador: 10 }],
+    produccion: { min: 1200, max: 2500, n: "Producción de curso a la medida (contenido del cliente que produce HRTIC)" } });
   var IMPLEMENTACION = { monto: 490, anual: 0, dias_habiles: 15 };
   var PLAN_ARCHIVO = { general: [[50, 360], [200, 720], [Infinity, 1200]], sst: 180 };
   var MODALIDADES = [
@@ -64,9 +81,9 @@
   function r2(x) { return Math.round(x * 100 + 1e-9) / 100; }
   function tramoDe(n) { for (var i = 0; i < TRAMOS.length; i++) if (n >= TRAMOS[i][0] && n <= TRAMOS[i][1]) return i; return -1; }
   function modulo(k) { for (var i = 0; i < MODULOS.length; i++) if (MODULOS[i].k === k) return MODULOS[i]; return null; }
-  function normalizar(lista) {
-    var out = ["asistencia"];
-    (lista || []).forEach(function (k) { if (modulo(k) && out.indexOf(k) < 0) out.push(k); });
+  function normalizar(lista, op) {
+    var sin = !!(op && op.sin_asistencia), out = sin ? [] : ["asistencia"];
+    (lista || []).forEach(function (k) { if (modulo(k) && out.indexOf(k) < 0 && !(sin && k === "asistencia")) out.push(k); });
     return MODULOS.map(function (m) { return m.k; }).filter(function (k) { return out.indexOf(k) >= 0; });
   }
   function tarifa(mods, t) {
@@ -78,29 +95,33 @@
     }
     return "Plan a la medida";
   }
-  function cotizar(modulos, n) {
+  function cotizar(modulos, n, op) {
     n = Math.floor(Number(n));
     if (!(n >= 1)) return { ok: false, error: "Indica el número de trabajadores (1 o más)." };
-    var mods = normalizar(modulos), t = tramoDe(n), avisos = [];
+    var mods = normalizar(modulos, op), t = tramoDe(n), avisos = [];
+    if (!mods.length) return { ok: false, error: "Elige al menos un módulo." };
     if (mods.indexOf("corporativo") >= 0 && n <= 50) { mods = mods.filter(function (k) { return k !== "corporativo"; }); avisos.push("Corporativo se contrata desde 51 trabajadores: no se incluyó."); }
+    if (!mods.length) return { ok: false, error: "Corporativo se contrata desde 51 trabajadores: elige otro módulo." };
     var porTrab = tarifa(mods, t), bruto = r2(porTrab * n), piso = 0, pisoDe = null;
     for (var i = 0; i < t; i++) {
       var v = r2(TRAMOS[i][1] * tarifa(mods, i)); if (v > piso) { piso = v; pisoDe = TRAMOS[i][1]; }
     }
-    var micro = mods.length === 1 && n <= MICRO.hasta;
-    var minimo = micro ? MICRO.minimo : mods.reduce(function (s, k) { return s + modulo(k).minimo; }, 0);
+    var micro = mods.length === 1 && mods[0] === "asistencia" && n <= MICRO.hasta;
+    var sinAsis = mods.indexOf("asistencia") < 0;
+    var minimo = micro ? MICRO.minimo : mods.reduce(function (s, k) { return s + modulo(k).minimo; }, sinAsis ? MINIMO_BASE : 0);
+    if (sinAsis) avisos.push("Plan sin Control de asistencia: la empresa registra la asistencia en otro sistema (obligación del empleador, D.S. 004-2006-TR, art. 1).");
     var sub = Math.max(bruto, piso, minimo), regla = sub === bruto ? "tarifa" : (sub === piso && piso >= minimo ? "piso" : "minimo");
     var igv = r2(sub * IGV);
     return {
-      ok: true, n: n, tramo: ETIQUETAS_TRAMO[t], modulos: mods, plan: nombrePlan(mods), por_trabajador: porTrab,
+      ok: true, n: n, tramo: ETIQUETAS_TRAMO[t], modulos: mods, plan: nombrePlan(mods), por_trabajador: porTrab, sin_asistencia: sinAsis,
       detalle: mods.map(function (k) { var m = modulo(k); return { k: k, n: m.n, por_trabajador: m.p[t], subtotal: r2((m.p[t] || 0) * n) }; }),
       bruto: bruto, piso: piso, piso_de: pisoDe, minimo: minimo, micro: micro, regla: regla,
       subtotal: r2(sub), igv: igv, total: r2(sub + igv), efectivo_por_trabajador: r2(sub / n), avisos: avisos
     };
   }
   function modalidad(k) { for (var i = 0; i < MODALIDADES.length; i++) if (MODALIDADES[i].k === k) return MODALIDADES[i]; return null; }
-  function propuesta(modulos, n, k, precio, promo) {
-    var q = cotizar(modulos, n), m = modalidad(k || "mensual");
+  function propuesta(modulos, n, k, precio, promo, op) {
+    var q = cotizar(modulos, n, op), m = modalidad(k || "mensual");
     if (!q.ok) return q;
     if (!m) return { ok: false, error: "Elige la forma de pago." };
     var especial0 = precio !== undefined && precio !== null && precio !== "";
@@ -164,10 +185,43 @@
     for (var i = 0; i < PLAN_ARCHIVO.general.length; i++) if (n <= PLAN_ARCHIVO.general[i][0]) return PLAN_ARCHIVO.general[i][1];
     return PLAN_ARCHIVO.general[PLAN_ARCHIVO.general.length - 1][1];
   }
+  function servicio(k, n) {
+    var sv = null; for (var i = 0; i < SERVICIOS.length; i++) if (SERVICIOS[i].k === k) sv = SERVICIOS[i];
+    if (!sv) return { ok: false, error: "Servicio no válido." };
+    n = Math.floor(Number(n)); if (!(n >= 1)) return { ok: false, error: "Indica el número de trabajadores (1 o más)." };
+    if (sv.tramos) return porTramos(sv, n);
+    for (var j = 0; j < sv.precios.length; j++) if (n <= sv.precios[j][0]) {
+      var desdeN = j ? sv.precios[j - 1][0] + 1 : 1, hasta = sv.precios[j][0];
+      return { ok: true, k: sv.k, n: sv.n, d: sv.d, por: sv.por, desglose: (sv.desglose || []).slice(), sin_costo: sv.sin_costo || "", trabajadores: n, tramo: hasta === Infinity ? "desde " + desdeN : desdeN + " a " + hasta,
+        subtotal: sv.precios[j][1], igv: r2(sv.precios[j][1] * IGV), total: r2(sv.precios[j][1] * (1 + IGV)) };
+    }
+  }
+  function totalTramo(t, n) { return t.fijo !== undefined ? t.fijo : r2(t.por_trabajador * n); }
+  function porTramos(sv, n) {
+    var j = 0; while (j < sv.tramos.length - 1 && n > sv.tramos[j].hasta) j++;
+    var t = sv.tramos[j], base = totalTramo(t, n), piso = 0, pisoDe = null;
+    for (var i = 0; i < j; i++) { var tope = totalTramo(sv.tramos[i], sv.tramos[i].hasta); if (tope > piso) { piso = tope; pisoDe = sv.tramos[i].hasta; } }
+    var sub = Math.max(base, piso), desdeN = j ? sv.tramos[j - 1].hasta + 1 : 1;
+    return { ok: true, k: sv.k, n: sv.n, d: sv.d, por: sv.por, desglose: (sv.desglose || []).slice(), sin_costo: sv.sin_costo || "", trabajadores: n,
+      tramo: t.hasta === Infinity ? "desde " + desdeN : desdeN + " a " + t.hasta, por_trabajador: t.por_trabajador === undefined ? null : t.por_trabajador, fijo: t.fijo === undefined ? null : t.fijo,
+      regla: t.fijo !== undefined ? "fijo" : piso > base ? "piso" : "tramo", piso_de: piso > base ? pisoDe : null, sin_piso: base,
+      subtotal: r2(sub), igv: r2(sub * IGV), total: r2(sub * (1 + IGV)) };
+  }
+  function cursos(nCursos, trabajadores, produccion) {
+    var c = Math.floor(Number(nCursos)), sv = null; for (var i = 0; i < SERVICIOS.length; i++) if (SERVICIOS[i].k === "capacitacion") sv = SERVICIOS[i];
+    if (!(c >= 1 && c <= 50)) return { ok: false, error: "Indica el número de cursos (1 a 50)." };
+    var q = servicio("capacitacion", trabajadores); if (!q.ok) return q;
+    var pr = produccion === null || produccion === undefined || produccion === "" ? 0 : r2(Number(String(produccion).replace(",", ".")));
+    if (!(pr === 0 || (pr >= sv.produccion.min && pr <= sv.produccion.max))) return { ok: false, error: "La producción del curso a la medida va de " + soles(sv.produccion.min) + " a " + soles(sv.produccion.max) + " sin IGV (según su duración)." };
+    var cursosSub = r2(q.subtotal * c), sub = r2(cursosSub + pr);
+    return { ok: true, cursos: c, trabajadores: q.trabajadores, por_curso: q.subtotal, por_curso_con_igv: q.total, tramo: q.tramo, regla: q.regla, piso_de: q.piso_de,
+      por_trabajador: q.por_trabajador, fijo: q.fijo, cursos_subtotal: cursosSub, produccion: pr, produccion_n: sv.produccion.n, desglose: q.desglose, sin_costo: q.sin_costo,
+      subtotal: sub, igv: r2(sub * IGV), total: r2(sub * (1 + IGV)) };
+  }
   function desde() { return { sin_igv: MICRO.minimo, con_igv: r2(MICRO.minimo * (1 + IGV)) }; }
   function soles(x) { return "S/ " + Number(x).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  g.HRTarifario = { VERSION: "2026-10-28.1", TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
-    MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo, PROMO_LANZAMIENTO: PROMO_LANZAMIENTO,
+  g.HRTarifario = { VERSION: "2026-11-15.1", MINIMO_BASE: MINIMO_BASE, SERVICIOS: SERVICIOS, servicio: servicio, TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
+    MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo, PROMO_LANZAMIENTO: PROMO_LANZAMIENTO, cursos: cursos,
     cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles,
     MODALIDADES: MODALIDADES, modalidad: modalidad, propuesta: propuesta, descuentoAplicable: descuentoAplicable };
 })(typeof window !== "undefined" ? window : globalThis);
