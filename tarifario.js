@@ -1,4 +1,4 @@
-/* HRTIC · tarifario público de hrticonsultores.com. GENERADO, no editar a mano: fuente/generar_tarifario_publico.cjs desde public/tarifario.js de PRAOLIR · VERSION 2026-11-15.1 · sha256 2927980a3594776e04f1889b8bcc83f5bafc74ce31baba4e2719b1e5ff952e1a */
+/* HRTIC · tarifario público de hrticonsultores.com. GENERADO, no editar a mano: fuente/generar_tarifario_publico.cjs desde public/tarifario.js de PRAOLIR · VERSION 2026-11-16.1 · sha256 0e205cdd36fb8932ee9936502db373c969efbd56e532c7809b005bafe1648eaf */
 (function (g) {
   "use strict";
   var TRAMOS = [
@@ -25,7 +25,7 @@
       d: "Objetivos, evaluación 90° a 360°, apuntes de incidentes, actas 1:1, Nine Box y calibración",
       p: [5.70, 3.40, 2.00, 1.80, 1.70, 1.60] },
     { k: "cumplimiento", n: "Cumplimiento laboral", grupo: "Integral", minimo: 133,
-      d: "Autodiagnóstico de 37 obligaciones (relaciones laborales, SST, hostigamiento sexual, igualdad salarial, selección de personal y datos de postulantes) con la información de todos los módulos contratados, evidencia, semáforo, plan de acción y multa potencial SUNAFIL; modelo de aviso y autorización de datos para postulantes; políticas con acuse, investigaciones de hostigamiento con sus plazos, registros de SST y sondeo anual de hostigamiento sexual",
+      d: "Autodiagnóstico de 38 obligaciones (relaciones laborales, SST, hostigamiento sexual, igualdad salarial, selección de personal y datos de postulantes) con la información de todos los módulos contratados, evidencia, semáforo, plan de acción y multa potencial SUNAFIL; modelo de aviso y autorización de datos para postulantes; políticas con acuse, investigaciones de hostigamiento con sus plazos, registros de SST y sondeo anual de hostigamiento sexual",
       p: [3.00, 1.70, 1.10, 1.00, 0.90, 0.90] },
     { k: "clima", n: "Clima y convivencia", grupo: "Integral", minimo: 132,
       d: "Encuesta de clima anónima con matriz de prioridades y plan de acción, encuesta de salida, buzón y canal de denuncias",
@@ -220,7 +220,7 @@
   }
   function desde() { return { sin_igv: MICRO.minimo, con_igv: r2(MICRO.minimo * (1 + IGV)) }; }
   function soles(x) { return "S/ " + Number(x).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  g.HRTarifario = { VERSION: "2026-11-15.1", MINIMO_BASE: MINIMO_BASE, SERVICIOS: SERVICIOS, servicio: servicio, TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
+  g.HRTarifario = { VERSION: "2026-11-16.1", MINIMO_BASE: MINIMO_BASE, SERVICIOS: SERVICIOS, servicio: servicio, TRAMOS: TRAMOS, ETIQUETAS_TRAMO: ETIQUETAS_TRAMO, MODULOS: MODULOS, PAQUETES: PAQUETES,
     MICRO: MICRO, IGV: IGV, INCLUIDO: INCLUIDO, IMPLEMENTACION: IMPLEMENTACION, PLAN_ARCHIVO: PLAN_ARCHIVO, planArchivo: planArchivo, PROMO_LANZAMIENTO: PROMO_LANZAMIENTO, cursos: cursos,
     cotizar: cotizar, desde: desde, tramoDe: tramoDe, normalizar: normalizar, soles: soles,
     MODALIDADES: MODALIDADES, modalidad: modalidad, propuesta: propuesta, descuentoAplicable: descuentoAplicable };
