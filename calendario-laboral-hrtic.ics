@@ -6,25 +6,6 @@ METHOD:PUBLISH
 X-WR-CALNAME:Calendario laboral HRTIC
 X-WR-TIMEZONE:America/Lima
 BEGIN:VEVENT
-UID:cts-2026-11@hrticonsultores.com
-DTSTAMP:20260924T170000Z
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261117
-SUMMARY:Vence el depósito de CTS de noviembre
-DESCRIPTION:El plazo son los primeros 15 días naturales de noviembre. El 1
- 5/11/2026 es domingo\, así que el depósito puede hacerse hasta el lunes 
- 16/11/2026. Se calcula con la remuneración computable de octubre.\nBase l
- egal: D.S. N.º 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01/03/1997)
- \, arts. 21 y 22\nhttps://hrticonsultores.com/calendario-laboral.html
-URL:https://hrticonsultores.com/calendario-laboral.html
-TRANSP:TRANSPARENT
-BEGIN:VALARM
-ACTION:DISPLAY
-TRIGGER:-P3D
-DESCRIPTION:Vence el depósito de CTS de noviembre
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:cts-hoja-2026-11@hrticonsultores.com
 DTSTAMP:20260924T170000Z
 DTSTART;VALUE=DATE:20261123
