@@ -260,6 +260,8 @@ a.tarjeta:hover { border-color: var(--cian); transform: translateY(-2px); color:
 .linea .cabeza .icono { display: block; width: 56px; height: 56px; color: var(--cian); margin-bottom: 14px; }
 .linea .cabeza .icono svg, .tarjeta .icono svg { display: block; width: 100%; height: 100%; }
 .linea .cabeza .num { font-size: .78rem; font-weight: 700; letter-spacing: .12em; color: var(--cian-texto); }
+/* Web v1.56 (18/11/2026): el título de la línea cabe en su columna de 280 px («Compensaciones» medía 313 px con 2.2rem). */
+.linea .cabeza h2 { font-size: clamp(1.45rem, 2.4vw, 1.9rem); overflow-wrap: break-word; }
 .linea .cabeza p { color: var(--texto-2); font-size: .95rem; }
 .linea h3.sub { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-3); margin: 22px 0 10px; font-weight: 600; }
 .linea h3.sub:first-child { margin-top: 0; }
