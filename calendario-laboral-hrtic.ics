@@ -6,24 +6,6 @@ METHOD:PUBLISH
 X-WR-CALNAME:Calendario laboral HRTIC
 X-WR-TIMEZONE:America/Lima
 BEGIN:VEVENT
-UID:cts-hoja-2026-11@hrticonsultores.com
-DTSTAMP:20260924T170000Z
-DTSTART;VALUE=DATE:20261123
-DTEND;VALUE=DATE:20261124
-SUMMARY:Entrega de la hoja de liquidación de la CTS
-DESCRIPTION:Dentro de los 5 días hábiles de efectuado el depósito\, firm
- ada y bajo cargo. Si depositaste el 16/11/2026\, vence el lunes 23/11/2026
- .\nBase legal: D.S. N.º 001-97-TR\, TUO de la Ley de CTS (El Peruano\, 01
- /03/1997)\, art. 29\nhttps://hrticonsultores.com/calendario-laboral.html
-URL:https://hrticonsultores.com/calendario-laboral.html
-TRANSP:TRANSPARENT
-BEGIN:VALARM
-ACTION:DISPLAY
-TRIGGER:-P3D
-DESCRIPTION:Entrega de la hoja de liquidación de la CTS
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:grati-2026-12@hrticonsultores.com
 DTSTAMP:20260924T170000Z
 DTSTART;VALUE=DATE:20261215
